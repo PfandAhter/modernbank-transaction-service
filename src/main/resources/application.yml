@@ -1,0 +1,22 @@
+
+kafka:
+  topics:
+    withdraw-money: withdraw-money
+    deposit-money: deposit-money
+    transfer-money: start-transfer-money
+    transfer-update-money: update-transfer-money
+    transfer-finalize-money: finalize-transfer-money
+
+
+feign:
+  client:
+    notification-service:
+      url: http://localhost:8090/api/v1/notification
+      sendNotification: /notification/send
+    account-service: #TODO: Change PORT
+      url: http://localhost:8081/api/v1/account
+      extractFromIBAN: /get-by-iban
+
+spring:
+  application:
+    name: transaction-service
