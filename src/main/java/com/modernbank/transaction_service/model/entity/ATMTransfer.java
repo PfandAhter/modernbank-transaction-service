@@ -1,21 +1,29 @@
 package com.modernbank.transaction_service.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "atm_transfer")
 @Getter
 @Setter
-
-public class ATMTransfer {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ATMTransfer implements Serializable {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "atm_id")
+    private String atmId;
+
+    @Column(name = "sender_iban")
+    private String senderIban;
 
     @Column(name = "receiver_iban")
     private String receiverIban;
@@ -23,12 +31,36 @@ public class ATMTransfer {
     @Column(name = "receiver_tckn")
     private String receiverTckn;
 
-    @Column(name = "sender_full_name")
-    private String senderFullName;
+    @Column(name = "sender_first_name")
+    private String senderFirstName;
 
-    @Column(name = "transfer_amount")
-    private Double transferAmount;
+    @Column(name = "sender_second_name")
+    private String senderSecondName;
+
+    @Column(name = "sender_last_name")
+    private String senderLastName;
+
+    @Column(name = "receiver_first_name")
+    private String receiverFirstName;
+
+    @Column(name = "receiver_second_name")
+    private String receiverSecondName;
+
+    @Column(name = "receiver_last_name")
+    private String receiverLastName;
+
+    @Column(name = "amount")
+    private Double amount;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "active")
+    private int active;
 
     @Column(name = "transfer_date")
     private LocalDateTime transferDate;
+
+    @Column(name = "update_date")
+    private LocalDateTime updateDate;
 }
