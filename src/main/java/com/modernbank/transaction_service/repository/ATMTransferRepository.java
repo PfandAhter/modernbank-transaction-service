@@ -1,10 +1,12 @@
 package com.modernbank.transaction_service.repository;
 
 import com.modernbank.transaction_service.model.entity.ATMTransfer;
+import com.modernbank.transaction_service.model.enums.ATMTransferStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +18,9 @@ public interface ATMTransferRepository extends JpaRepository<ATMTransfer, String
     @Query("SELECT a FROM ATMTransfer a WHERE (a.receiverIban = ?1 OR a.receiverTckn = ?1) AND a.atmId = ?2 AND a.active = 1")
     List<Optional<ATMTransfer>> findATMTransferByReceiverIbanOrReceiverTckn(String receiverIbanOrTckn, String atmId);
 
-    @Query("SELECT a FROM ATMTransfer a WHERE (a.receiverIban = ?1 OR a.receiverTckn = ?1) AND a.atmId = ?2 AND a.active = 1")
-    List<ATMTransfer> findATMTransferByReceiverIbanOrReceiverTcknAndActive(String receiverIbanOrTckn, String atmId);
+    @Query("SELECT a FROM ATMTransfer a WHERE (a.receiverIban = ?1 OR a.receiverTckn = ?1) AND a.atmId = ?2 AND a.active = 1 AND a.status = ?3")
+    List<ATMTransfer> findATMTransferByReceiverIbanOrReceiverTcknAndActive(String receiverIbanOrTckn, String atmId, ATMTransferStatus status);
+
+    @Query("SELECT a FROM ATMTransfer a WHERE a.status = ?1 AND a.transferDate < ?2")
+    List<ATMTransfer> findAllByStatusAndCreatedAtBefore(ATMTransferStatus status, LocalDateTime createdAt);
 }

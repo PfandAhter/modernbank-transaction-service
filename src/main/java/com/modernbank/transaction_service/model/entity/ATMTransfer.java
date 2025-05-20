@@ -1,5 +1,6 @@
 package com.modernbank.transaction_service.model.entity;
 
+import com.modernbank.transaction_service.model.enums.ATMTransferStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -57,6 +58,10 @@ public class ATMTransfer implements Serializable {
 
     @Column(name = "active")
     private int active;
+
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    ATMTransferStatus status;
 
     @Column(name = "transfer_date")
     private LocalDateTime transferDate;

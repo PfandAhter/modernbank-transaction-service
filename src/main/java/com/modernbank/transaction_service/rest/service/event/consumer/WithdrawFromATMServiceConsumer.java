@@ -6,9 +6,11 @@ import com.modernbank.transaction_service.api.client.NotificationServiceClient;
 import com.modernbank.transaction_service.api.request.SendNotificationRequest;
 import com.modernbank.transaction_service.api.response.GetAccountByIban;
 import com.modernbank.transaction_service.api.response.GetATMNameAndIDResponse;
+import com.modernbank.transaction_service.exception.ExceptionMessageHandler;
 import com.modernbank.transaction_service.exception.NotFoundException;
 import com.modernbank.transaction_service.exception.ProcessFailedException;
 import com.modernbank.transaction_service.model.entity.ATMTransfer;
+import com.modernbank.transaction_service.model.enums.ATMTransferStatus;
 import com.modernbank.transaction_service.repository.ATMTransferRepository;
 import com.modernbank.transaction_service.rest.controller.request.TransferMoneyATMRequest;
 import com.modernbank.transaction_service.rest.controller.request.WithdrawFromATMRequest;
@@ -40,6 +42,8 @@ public class WithdrawFromATMServiceConsumer {
     private final NotificationServiceClient notificationServiceClient;
 
     private final ATMReportingServiceClient atmReportingServiceClient;
+
+    private final ExceptionMessageHandler exceptionMessageHandler;
 
     @KafkaListener(topics = "deposit-money-to-atm", groupId = "transfer-money-to-atm-group", containerFactory = "transferMoneyToATMKafkaListenerContainerFactory")
     public void consumeDepositMoney(TransferMoneyATMRequest request) {
@@ -82,6 +86,7 @@ public class WithdrawFromATMServiceConsumer {
                         .transferDate(LocalDateTime.now())
                         .updateDate(LocalDateTime.now())
                         .active(1)
+                        .status(ATMTransferStatus.PENDING)
                         .description(request.getDescription())
                         .build());
 
@@ -95,6 +100,7 @@ public class WithdrawFromATMServiceConsumer {
                         .senderLastName(request.getSenderLastName())
                         .amount(request.getAmount())
                         .active(1)
+                        .status(ATMTransferStatus.PENDING)
                         .transferDate(LocalDateTime.now())
                         .updateDate(LocalDateTime.now())
                         .description(request.getDescription())
@@ -118,10 +124,9 @@ public class WithdrawFromATMServiceConsumer {
                             .userId(senderAccountInfo.getUserId())
                             .title("Deposit Money to ATM")
                             .type("error")
-                            .message(String.format("Failed to deposit %.2f to ATM with ID %s. Reason: %s", request.getAmount(), request.getAtmId(), e.getMessage()))
+                            .message(String.format("Failed to deposit %.2f to ATM with ID %s. Reason: %s", request.getAmount(), request.getAtmId(), exceptionMessageHandler.createFailResponseBody(e.getMessage())))
                             .build());
 
-            throw new ProcessFailedException(e.getMessage());
         }
     }
 
@@ -131,7 +136,7 @@ public class WithdrawFromATMServiceConsumer {
             List<ATMTransfer> atmTransfersOptional;
 
             if(request.getTckn() == null || request.getTckn().length() != 11) {
-                atmTransfersOptional = atmTransferRepository.findATMTransferByReceiverIbanOrReceiverTcknAndActive(request.getIban(), request.getAtmId());
+                atmTransfersOptional = atmTransferRepository.findATMTransferByReceiverIbanOrReceiverTcknAndActive(request.getIban(), request.getAtmId(),ATMTransferStatus.PENDING);
 
                 if(atmTransfersOptional == null){
                     throw new NotFoundException(ATM_TRANSFER_NOT_FOUND_BY_IBAN_OR_ATMID);
@@ -147,10 +152,11 @@ public class WithdrawFromATMServiceConsumer {
                         .forEach(atmTransfer -> {
                             atmTransfer.setActive(0);
                             atmTransfer.setUpdateDate(LocalDateTime.now());
+                            atmTransfer.setStatus(ATMTransferStatus.COMPLETED);
                             atmTransferRepository.save(atmTransfer);
                         });
             }else{
-                atmTransfersOptional = atmTransferRepository.findATMTransferByReceiverIbanOrReceiverTcknAndActive(request.getTckn(), request.getAtmId());
+                atmTransfersOptional = atmTransferRepository.findATMTransferByReceiverIbanOrReceiverTcknAndActive(request.getTckn(), request.getAtmId(), ATMTransferStatus.PENDING);
 
                 if(atmTransfersOptional == null){
                     throw new NotFoundException(ATM_TRANSFER_NOT_FOUND_BY_TCKN_OR_ATMID);
@@ -166,6 +172,7 @@ public class WithdrawFromATMServiceConsumer {
                         .forEach(atmTransfer ->{
                             atmTransfer.setActive(0);
                             atmTransfer.setUpdateDate(LocalDateTime.now());
+                            atmTransfer.setStatus(ATMTransferStatus.COMPLETED);
                             atmTransferRepository.save(atmTransfer);
                         });
             }
@@ -184,8 +191,6 @@ public class WithdrawFromATMServiceConsumer {
 
         }catch (Exception e){
             log.error("Error occurred while processing withdraw money from atm request: {}", e.getMessage());
-
-            throw new NotFoundException(e.getMessage());
             // Call Notification Service...
         }
     }
