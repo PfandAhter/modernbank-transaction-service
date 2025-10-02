@@ -1,7 +1,7 @@
 package com.modernbank.transaction_service.rest.service.impl;
 
 import com.modernbank.transaction_service.exception.ErrorCodesNotFoundException;
-import com.modernbank.transaction_service.model.entity.ErrorCodes;
+import com.modernbank.transaction_service.entity.ErrorCodes;
 import com.modernbank.transaction_service.repository.ErrorCodesRepository;
 import com.modernbank.transaction_service.rest.service.IErrorCacheService;
 import lombok.RequiredArgsConstructor;

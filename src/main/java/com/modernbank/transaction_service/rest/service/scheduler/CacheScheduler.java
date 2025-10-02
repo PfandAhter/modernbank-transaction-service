@@ -1,6 +1,6 @@
 package com.modernbank.transaction_service.rest.service.scheduler;
 
-import com.modernbank.transaction_service.model.entity.ATMTransfer;
+import com.modernbank.transaction_service.entity.ATMTransfer;
 import com.modernbank.transaction_service.model.enums.ATMTransferStatus;
 import com.modernbank.transaction_service.repository.ATMTransferRepository;
 import com.modernbank.transaction_service.rest.service.IErrorCacheService;

@@ -1,6 +1,6 @@
 package com.modernbank.transaction_service.repository;
 
-import com.modernbank.transaction_service.model.entity.ATMTransfer;
+import com.modernbank.transaction_service.entity.ATMTransfer;
 import com.modernbank.transaction_service.model.enums.ATMTransferStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

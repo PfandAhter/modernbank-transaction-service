@@ -1,4 +1,4 @@
-package com.modernbank.transaction_service.model.entity;
+package com.modernbank.transaction_service.entity;
 
 import com.modernbank.transaction_service.model.enums.ATMTransferStatus;
 import jakarta.persistence.*;
@@ -22,6 +22,9 @@ public class ATMTransfer implements Serializable {
 
     @Column(name = "atm_id")
     private String atmId;
+
+    @Column(name = "transaction_id")
+    private String transactionId;
 
     @Column(name = "sender_iban")
     private String senderIban;

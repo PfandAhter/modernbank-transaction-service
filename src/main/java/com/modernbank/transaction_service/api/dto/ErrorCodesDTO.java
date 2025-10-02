@@ -1,4 +1,4 @@
-package com.modernbank.transaction_service.model.dto;
+package com.modernbank.transaction_service.api.dto;
 
 import lombok.Getter;
 import lombok.Setter;
