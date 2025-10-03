@@ -1,3 +1,5 @@
+server:
+  port: 8082
 
 kafka:
   topics:
@@ -6,17 +8,54 @@ kafka:
     transfer-money: start-transfer-money
     transfer-update-money: update-transfer-money
     transfer-finalize-money: finalize-transfer-money
+    deposit-money-to-atm: deposit-money-to-atm
+    withdraw-money-from-atm: withdraw-money-from-atm
 
 
 feign:
   client:
+    atm-reporting-service:
+      url: http://localhost:8080/api/v1
+      getATMById: /atm/get-by-id
     notification-service:
-      url: http://localhost:8090/api/v1/notification
+      url: http://localhost:8090/api/v1
       sendNotification: /notification/send
     account-service: #TODO: Change PORT
       url: http://localhost:8081/api/v1/account
       extractFromIBAN: /get-by-iban
+      updateBalance: /balance/update
 
 spring:
+  main:
+    banner-mode: off
+  datasource:
+    password: springstudent
+    username: springstudent
+    url: jdbc:mysql://localhost:3306/modern_bank_transaction_service
+  jpa:
+    properties:
+      javax:
+        persistence:
+          validation:
+            mode: none
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      auto-offset-reset: earliest
+      bootstrap-servers: localhost:9092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring:
+          deserializer:
+            value:
+              delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+              trusted.packages: "com.modernbank.transaction_service.rest.controller.request"
   application:
     name: transaction-service

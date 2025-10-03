@@ -13,9 +13,10 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
 import static com.modernbank.transaction_service.constant.ErrorCodeConstants.INSUFFICIENT_FUNDS;
+import static com.modernbank.transaction_service.constant.ErrorCodeConstants.ACCOUNT_NOT_FOUND;
+import static com.modernbank.transaction_service.constant.ErrorCodeConstants.CURRENCY_IS_NOT_SAME;
+import static com.modernbank.transaction_service.constant.ErrorCodeConstants.ACCOUNT_NAME_IS_NOT_SAME;
 
 @Service
 @RequiredArgsConstructor
@@ -58,14 +59,14 @@ public class TransactionServiceConsumer {
 
             if(!senderAccountByIban.getCurrency().equals(receiverAccountByIban.getCurrency())){
                 log.info("Currency is not same -> accountId: " + request.getFromAccountId());
-                throw new NotFoundException("Currency is not same");
+                throw new NotFoundException(CURRENCY_IS_NOT_SAME);
             }
 
             if(!receiverAccountByIban.getFirstName().equals(request.getToFirstName()) &&
                     !receiverAccountByIban.getSecondName().equals(request.getToSecondName()) &&
                     !receiverAccountByIban.getLastName().equals(request.getToLastName())){
                 log.info("Account name is not same -> accountId: " + request.getToAccountId());
-                throw new NotFoundException("Account name is not same");
+                throw new NotFoundException(ACCOUNT_NAME_IS_NOT_SAME);
             }
 
             if (senderAccountByIban.getBalance() >= request.getAmount()) {
@@ -80,6 +81,7 @@ public class TransactionServiceConsumer {
         } catch (RuntimeException exception) {
             log.warn("Error at transfer start : ", exception.getMessage());
 
+            throw new NotFoundException(exception.getMessage());
             /*dltKafkaTemplate.send("money-process.DLT", MoneyProcessFailed.builder()
                     .errorCode(exception.getMessage())
                     .bankName("BakirBank")
@@ -102,6 +104,7 @@ public class TransactionServiceConsumer {
 
             accountServiceClient.updateBalance(request.getFromAccountId(), request.getAmount());
 
+            throw new NotFoundException(notFoundException.getMessage());
             /*dltKafkaTemplate.send("money-process.DLT", MoneyProcessFailed.builder()
                     .errorCode(notFoundException.getMessage())
                     .bankName("BakirBank")
@@ -122,7 +125,7 @@ public class TransactionServiceConsumer {
 
             if(receiver == null || sender == null) {
                 log.info("Account not found -> accountId: " + request.getFromAccountId());
-                throw new NotFoundException("Account not found");
+                throw new NotFoundException(ACCOUNT_NOT_FOUND);
             }
 
             String receiverNotificationMessage = String.format(
@@ -139,7 +142,7 @@ public class TransactionServiceConsumer {
                     request.getAmount()
             );
 
-            notificationKafkaTemplate.send("notification-service", SendNotificationRequest.builder()
+            notificationKafkaTemplate.send("notification-service", SendNotificationRequest.builder() //TODO: Buranin title ve type bilgilerini ekle...
                     .userId(receiver.getUserId())
                     .message(receiverNotificationMessage)
                     .build());
@@ -165,6 +168,7 @@ public class TransactionServiceConsumer {
         } catch (Exception exception) {
             log.error("Error at transfer finalize :  ", exception.getMessage());
 
+            throw new NotFoundException(exception.getMessage());
             /*dltKafkaTemplate.send("money-process.DLT", MoneyProcessFailed.builder()
                     .errorCode(exception.getMessage())
                     .bankName("BakirBank")
