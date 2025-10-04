@@ -1,6 +1,6 @@
 package com.modernbank.transaction_service.rest.service;
 
-import com.modernbank.transaction_service.model.entity.ErrorCodes;
+import com.modernbank.transaction_service.entity.ErrorCodes;
 
 import java.util.List;
 

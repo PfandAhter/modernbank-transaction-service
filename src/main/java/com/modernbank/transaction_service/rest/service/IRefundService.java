@@ -1,6 +1,6 @@
 package com.modernbank.transaction_service.rest.service;
 
-import com.modernbank.transaction_service.model.entity.ATMTransfer;
+import com.modernbank.transaction_service.entity.ATMTransfer;
 
 public interface IRefundService {
 

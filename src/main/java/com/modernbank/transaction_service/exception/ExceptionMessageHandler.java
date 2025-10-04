@@ -1,7 +1,6 @@
 package com.modernbank.transaction_service.exception;
 
-import com.modernbank.transaction_service.model.dto.ErrorCodesDTO;
-import com.modernbank.transaction_service.rest.controller.response.ErrorResponse;
+import com.modernbank.transaction_service.api.dto.ErrorCodesDTO;
 import com.modernbank.transaction_service.rest.service.IErrorCacheService;
 import com.modernbank.transaction_service.rest.service.IMapperService;
 import lombok.RequiredArgsConstructor;

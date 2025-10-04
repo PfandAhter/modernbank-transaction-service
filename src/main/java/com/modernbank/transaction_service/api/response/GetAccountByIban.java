@@ -10,6 +10,7 @@ import lombok.Setter;
 @Setter
 public class GetAccountByIban {
 
+    private String accountId;
     private String userId;
     private String firstName;
     private String secondName;
