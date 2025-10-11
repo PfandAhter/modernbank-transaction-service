@@ -16,4 +16,12 @@ public class BaseRequest {
 
     private String token;
 
+    @JsonIgnore
+    private String userId;
+
+    @JsonIgnore
+    private String userEmail;
+
+    @JsonIgnore
+    private String userRole;
 }

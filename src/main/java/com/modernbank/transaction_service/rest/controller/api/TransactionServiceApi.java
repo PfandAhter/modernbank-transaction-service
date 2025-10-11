@@ -1,9 +1,6 @@
 package com.modernbank.transaction_service.rest.controller.api;
 
-import com.modernbank.transaction_service.rest.controller.request.TransferMoneyATMRequest;
-import com.modernbank.transaction_service.rest.controller.request.TransferMoneyRequest;
-import com.modernbank.transaction_service.rest.controller.request.WithdrawAndDepositMoneyRequest;
-import com.modernbank.transaction_service.rest.controller.request.WithdrawFromATMRequest;
+import com.modernbank.transaction_service.rest.controller.request.*;
 import com.modernbank.transaction_service.rest.controller.response.BaseResponse;
 import com.modernbank.transaction_service.rest.controller.response.GetTransactionsResponse;
 import org.springframework.http.ResponseEntity;
@@ -31,4 +28,7 @@ public interface TransactionServiceApi {
 
     @GetMapping(path = "/transactions")
     GetTransactionsResponse getAllTransactions(@RequestParam("accountId") String accountId, @RequestParam("page") int page, @RequestParam("size") int size);
+
+    @PostMapping(path = "/transactionsv2")
+    GetTransactionsResponse getAllTransactionsV2(@RequestBody GetAllTransactionsRequest getAllTransactionsRequest);
 }

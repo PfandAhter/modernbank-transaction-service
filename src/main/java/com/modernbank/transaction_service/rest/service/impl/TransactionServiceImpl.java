@@ -1,16 +1,21 @@
 package com.modernbank.transaction_service.rest.service.impl;
 
+import com.modernbank.transaction_service.api.dto.TransactionDTO;
 import com.modernbank.transaction_service.entity.Transaction;
 import com.modernbank.transaction_service.model.TransactionListModel;
 import com.modernbank.transaction_service.model.TransactionModel;
+import com.modernbank.transaction_service.model.enums.TransactionType;
 import com.modernbank.transaction_service.repository.TransactionRepository;
+import com.modernbank.transaction_service.rest.controller.request.GetAllTransactionsRequest;
 import com.modernbank.transaction_service.rest.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,16 +25,39 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
 
     @Override
-    public TransactionListModel getAllTransactionsByAccountId(String accountId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        Page<Transaction> transactions = transactionRepository.findByAccountId(accountId, pageable);
+    public TransactionListModel getAllTransactionsByAccountId(GetAllTransactionsRequest request) {
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+
+        TransactionType type = null;
+        if (request.getType() != null && !request.getType().equalsIgnoreCase("ALL")) {
+            type = TransactionType.valueOf(request.getType().toUpperCase());
+        }
+
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = null;
+
+        if ("WEEK".equalsIgnoreCase(request.getDateRange())) {
+            startDate = endDate.minusWeeks(1);
+        } else if ("MONTH".equalsIgnoreCase(request.getDateRange())) {
+            startDate = endDate.minusMonths(1);
+        }
+
+        Page<Transaction> transactionPage = transactionRepository.findAllByAccountIdAndTypeAndDateBetween(
+                request.getAccountId(),
+                type,
+                startDate,
+                endDate,
+                pageable
+        );
+
+        List<TransactionModel> transactionModels = transactionPage.getContent().stream()
+                .map(this::mapToModel)
+                .toList();
 
         return new TransactionListModel(
-                transactions.getContent().stream()
-                        .map(this::mapToModel)
-                        .toList(),
-                transactions.getTotalPages(),
-                transactions.getTotalElements()
+                transactionModels,
+                transactionPage.getTotalPages(),
+                transactionPage.getTotalElements()
         );
     }
 

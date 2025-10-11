@@ -3,10 +3,7 @@ package com.modernbank.transaction_service.rest.controller;
 import com.modernbank.transaction_service.api.dto.TransactionDTO;
 import com.modernbank.transaction_service.model.TransactionListModel;
 import com.modernbank.transaction_service.rest.controller.api.TransactionServiceApi;
-import com.modernbank.transaction_service.rest.controller.request.TransferMoneyATMRequest;
-import com.modernbank.transaction_service.rest.controller.request.TransferMoneyRequest;
-import com.modernbank.transaction_service.rest.controller.request.WithdrawAndDepositMoneyRequest;
-import com.modernbank.transaction_service.rest.controller.request.WithdrawFromATMRequest;
+import com.modernbank.transaction_service.rest.controller.request.*;
 import com.modernbank.transaction_service.rest.controller.response.BaseResponse;
 import com.modernbank.transaction_service.rest.controller.response.GetTransactionsResponse;
 import com.modernbank.transaction_service.rest.service.IMapperService;
@@ -62,9 +59,19 @@ public class TransactionServiceController implements TransactionServiceApi {
 
     @Override
     public GetTransactionsResponse getAllTransactions(String accountId, int page, int size) {
-        TransactionListModel model = transactionService.getAllTransactionsByAccountId(accountId, page, size);
+        /*TransactionListModel model = transactionService.getAllTransactionsByAccountId(accountId, page, size);
+        List<TransactionDTO> transactionDTOs = mapperService.modelMapper(model.getTransactions(), TransactionDTO.class);
+
+        return new GetTransactionsResponse(transactionDTOs,model.getTotalElements(),model.getTotalPages());*/
+        return null;
+    } //TODO: Burayi degistirdim. Bunun front-endden gonderilmesi kismini organize et.
+
+    @Override
+    public GetTransactionsResponse getAllTransactionsV2(GetAllTransactionsRequest request) {
+        TransactionListModel model = transactionService.
+                getAllTransactionsByAccountId(request);
         List<TransactionDTO> transactionDTOs = mapperService.modelMapper(model.getTransactions(), TransactionDTO.class);
 
         return new GetTransactionsResponse(transactionDTOs,model.getTotalElements(),model.getTotalPages());
-    } //TODO: Burayi degistirdim. Bunun front-endden gonderilmesi kismini organize et.
+    }
 }
