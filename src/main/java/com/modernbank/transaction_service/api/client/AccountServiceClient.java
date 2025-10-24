@@ -2,7 +2,7 @@ package com.modernbank.transaction_service.api.client;
 
 
 import com.modernbank.transaction_service.api.response.GetAccountByIban;
-import com.modernbank.transaction_service.rest.controller.response.BaseResponse;
+import com.modernbank.transaction_service.api.response.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

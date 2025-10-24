@@ -78,6 +78,9 @@ public class Transaction {
     @Nonnull
     private TransactionStatus status;
 
+    @Column(name = "title")
+    private String title;
+
     @Column(name = "description")
     private String description;
 

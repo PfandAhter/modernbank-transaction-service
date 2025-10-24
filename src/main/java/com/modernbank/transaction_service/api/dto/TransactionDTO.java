@@ -27,4 +27,8 @@ public class TransactionDTO {
     private String description;
 
     private LocalDateTime date;
+
+    private String receiverTCKN;
+
+    private String receiverFullName;
 }

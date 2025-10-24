@@ -1,7 +1,7 @@
 package com.modernbank.transaction_service.aspect;
 
-import com.modernbank.transaction_service.rest.controller.request.BaseRequest;
-import com.modernbank.transaction_service.rest.service.HeaderService;
+import com.modernbank.transaction_service.api.request.BaseRequest;
+import com.modernbank.transaction_service.service.HeaderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -18,7 +18,7 @@ public class BeforeControllerAspect {
 
     private final HeaderService headerService;
 
-    @Before(value = "execution(* com.modernbank.transaction_service.rest.controller.TransactionServiceController.*(..))")
+    @Before(value = "execution(* com.modernbank.transaction_service.controller.TransactionServiceController.*(..))")
     public void setTokenBeforeController(JoinPoint joinPoint){
         Object[] parameters = joinPoint.getArgs();
         for(Object param : parameters){
