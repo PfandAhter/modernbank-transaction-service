@@ -10,10 +10,12 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ChatNotificationRequest extends BaseRequest {
+public class ChatNotificationRequest {
     private String message;
     private String type;
     private String title;
+    private String userId;
+    private String level;
     private Map<String, Object> arguments;
     private LocalDateTime time;
 }

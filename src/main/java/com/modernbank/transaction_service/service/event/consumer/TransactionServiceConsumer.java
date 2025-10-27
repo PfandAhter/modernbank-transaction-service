@@ -66,8 +66,21 @@ public class TransactionServiceConsumer {
     public void processStartTransferMoney(TransferMoneyRequest request) {
         log.info("Received withdraw and deposit money request: {}", request);
         try {
-            //TODO : EN SON BURADAYDIM... Burada kullanicinin hesabinin ibanini gonderdigi iban adresini de kontrol etmemzi gerekiyor. Burada
-            //TODO gonderecegi iban adresinin isim bilgilerini de teyit etmemiz gerekmektedir. Ondan sonrasi burada basliyor...
+                        java.util.List<String> missingFields = new java.util.ArrayList<>();
+            if (request == null) {
+                missingFields.add("request");
+            } else {
+                if (request.getFromIBAN() == null) {
+                    missingFields.add("fromIBAN");
+                }
+                if (request.getToIBAN() == null) {
+                    missingFields.add("toIBAN");
+                }
+            }
+            if (!missingFields.isEmpty()) {
+                throw new IllegalArgumentException("Invalid transfer request - missing required fields: " + String.join(", ", missingFields));
+            }
+
             GetAccountByIban senderAccountByIban = accountServiceClient.getAccountByIban(request.getFromIBAN());
             GetAccountByIban receiverAccountByIban = accountServiceClient.getAccountByIban(request.getToIBAN());
 
@@ -186,7 +199,9 @@ public class TransactionServiceConsumer {
                 //chatnotificationservice call.
                 chatNotificationKafkaTemplate.send("chat-notification-service", ChatNotificationRequest.builder()
                         .title("Para Transferi Başarıyla Tamamlandı")
-                        .type("TEXT")
+                        .type("notification")
+                        .level("success")
+                        .userId(sender.getUserId())
                         .time(LocalDateTime.now())
                         .arguments(new HashMap<>())
                         .message("Transfer işlemi: " + request.getAmount() + " tutarında " + receiverFullName + " hesabına başarıyla tamamlandı.")

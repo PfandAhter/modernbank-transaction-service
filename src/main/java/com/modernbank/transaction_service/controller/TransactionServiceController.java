@@ -12,7 +12,6 @@ import com.modernbank.transaction_service.service.event.ITransactionServiceProdu
 import com.modernbank.transaction_service.service.event.IWithdrawFromATMServiceProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

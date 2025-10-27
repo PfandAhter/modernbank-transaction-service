@@ -94,12 +94,13 @@ public class KafkaConfiguration {
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         configProps.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
         configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.modernbank.transaction_service.api.request.TransferMoneyRequest");
+        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, TransferMoneyRequest.class.getName());
+        configProps.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
         return new DefaultKafkaConsumerFactory<>(
                 configProps,
                 new StringDeserializer(),
-                new JsonDeserializer<>(TransferMoneyRequest.class, false)
+                new ErrorHandlingDeserializer<>(new JsonDeserializer<>(TransferMoneyRequest.class, false)) //TODO: Burada ki error handlingi diger consumer factoryilere de uygula.
         );
     }
 
