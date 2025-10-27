@@ -1,10 +1,6 @@
 package com.modernbank.transaction_service.config;
 
-import com.modernbank.transaction_service.api.request.SendNotificationRequest;
-import com.modernbank.transaction_service.rest.controller.request.TransferMoneyATMRequest;
-import com.modernbank.transaction_service.rest.controller.request.TransferMoneyRequest;
-import com.modernbank.transaction_service.rest.controller.request.WithdrawAndDepositMoneyRequest;
-import com.modernbank.transaction_service.rest.controller.request.WithdrawFromATMRequest;
+import com.modernbank.transaction_service.api.request.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -55,8 +51,8 @@ public class KafkaConfiguration {
         configProps.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, JsonDeserializer.class);
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "com.modernbank.transaction_service.rest.controller.request");
-        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.modernbank.transaction_service.rest.controller.request.WithdrawAndDepositMoneyRequest");
+        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "com.modernbank.transaction_service.api.request");
+        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.modernbank.transaction_service.api.request.WithdrawAndDepositMoneyRequest");
 
         return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new JsonDeserializer<>(WithdrawAndDepositMoneyRequest.class));
     }
@@ -90,18 +86,24 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public ConsumerFactory<String, TransferMoneyRequest> moneyTransferConsumerFactory(){
+    public ConsumerFactory<String, TransferMoneyRequest> moneyTransferConsumerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "transfer-group");
-        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer.class);
-
-        configProps.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, JsonDeserializer.class);
-        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        configProps.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
         configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.modernbank.transaction_service.rest.controller.request.TransferMoneyRequest");
-        return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new JsonDeserializer<>(TransferMoneyRequest.class));
+        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, TransferMoneyRequest.class.getName());
+        configProps.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+
+        return new DefaultKafkaConsumerFactory<>(
+                configProps,
+                new StringDeserializer(),
+                new ErrorHandlingDeserializer<>(new JsonDeserializer<>(TransferMoneyRequest.class, false)) //TODO: Burada ki error handlingi diger consumer factoryilere de uygula.
+        );
     }
+
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, TransferMoneyRequest> moneyTransferKafkaListenerContainerFactory() {
@@ -179,8 +181,8 @@ public class KafkaConfiguration {
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         configProps.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, JsonDeserializer.class);
-        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "com.modernbank.transaction_service.rest.controller.request");
-        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.modernbank.transaction_service.rest.controller.request.WithdrawFromATMRequest");
+        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "com.modernbank.transaction_service.api.request");
+        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.modernbank.transaction_service.api.request.WithdrawFromATMRequest");
         return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new JsonDeserializer<>(WithdrawFromATMRequest.class));
     }
 
@@ -219,8 +221,8 @@ public class KafkaConfiguration {
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, JsonDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "com.modernbank.transaction_service.rest.controller.request");
-        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.modernbank.transaction_service.rest.controller.request.TransferMoneyATMRequest");
+        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "com.modernbank.transaction_service.api.request");
+        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.modernbank.transaction_service.api.request.TransferMoneyATMRequest");
         return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new JsonDeserializer<>(TransferMoneyATMRequest.class));
     }
 
@@ -228,6 +230,46 @@ public class KafkaConfiguration {
     public ConcurrentKafkaListenerContainerFactory<String, TransferMoneyATMRequest> transferMoneyToATMKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, TransferMoneyATMRequest> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(transferMoneyToATMServiceConsumerFactory());
+        // DefaultErrorHandler ile ilişkilendir
+        factory.setCommonErrorHandler(defaultErrorHandler());
+        return factory;
+    }
+
+    // Send Chat Notification KAFKA
+    @Bean
+    public ProducerFactory<String, ChatNotificationRequest> sendChatNotificationKafkaProducerFactory(){
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean
+    public KafkaTemplate<String, ChatNotificationRequest> sendChatNotificationKafkaTemplate(){
+//        KafkaTemplate<String, WithdrawAndDepositMoneyRequest> kafkaTemplate = new KafkaTemplate<>(moneyWithdrawAndDepositProducerFactory());
+        return new KafkaTemplate<>(sendChatNotificationKafkaProducerFactory());
+    }
+
+    @Bean
+    public ConsumerFactory<String, ChatNotificationRequest> sendChatNotificationKafkaConsumerFactory(){
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "send-chat-notification-group");
+        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, JsonDeserializer.class);
+        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.modernbank.transaction_service.api.request.ChatNotificationRequest");
+        configProps.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+        return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new JsonDeserializer<>(ChatNotificationRequest.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, ChatNotificationRequest> sendChatNotificationKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, ChatNotificationRequest> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(sendChatNotificationKafkaConsumerFactory());
         // DefaultErrorHandler ile ilişkilendir
         factory.setCommonErrorHandler(defaultErrorHandler());
         return factory;

@@ -1,9 +1,5 @@
 package com.modernbank.transaction_service.model;
 
-import com.modernbank.transaction_service.model.enums.TransactionCategory;
-import com.modernbank.transaction_service.model.enums.TransactionChannel;
-import com.modernbank.transaction_service.model.enums.TransactionStatus;
-import com.modernbank.transaction_service.model.enums.TransactionType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,4 +27,14 @@ public class TransactionModel {
     private String description;
 
     private LocalDateTime date;
+
+    private String receiverTCKN;
+
+    private String receiverFirstName;
+
+    private String receiverSecondName;
+
+    private String receiverLastName;
+
+    private String receiverFullName;
 }
