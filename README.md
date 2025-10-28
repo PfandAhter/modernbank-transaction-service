@@ -71,6 +71,3 @@ Request and response payloads are defined under [`src/main/java/com/modernbank/t
 - Enable required infrastructure services (MySQL, Kafka, Redis) locally or via containers before exercising the endpoints.
 - Kafka topic names, Feign client routes, and caching options are all customizable through `application.yml`.
 - Use the `MapperService` utilities to convert between entities, models, and DTOs when extending the service.
-
-## License
-This project does not currently declare a license. Add one before distributing the code.
