@@ -1,5 +1,6 @@
 package com.modernbank.transaction_service.model;
 
+import com.modernbank.transaction_service.model.enums.InvoiceStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -37,4 +38,6 @@ public class TransactionModel {
     private String receiverLastName;
 
     private String receiverFullName;
+
+    private InvoiceStatus invoiceStatus;
 }

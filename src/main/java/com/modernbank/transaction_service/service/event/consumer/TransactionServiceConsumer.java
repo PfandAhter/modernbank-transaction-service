@@ -2,17 +2,11 @@ package com.modernbank.transaction_service.service.event.consumer;
 
 
 import com.modernbank.transaction_service.api.client.AccountServiceClient;
-import com.modernbank.transaction_service.api.request.ChatNotificationRequest;
-import com.modernbank.transaction_service.api.request.SendNotificationRequest;
+import com.modernbank.transaction_service.api.request.*;
 import com.modernbank.transaction_service.api.response.GetAccountByIban;
 import com.modernbank.transaction_service.entity.Transaction;
 import com.modernbank.transaction_service.exception.NotFoundException;
-import com.modernbank.transaction_service.api.request.TransferMoneyRequest;
-import com.modernbank.transaction_service.api.request.WithdrawAndDepositMoneyRequest;
-import com.modernbank.transaction_service.model.enums.TransactionCategory;
-import com.modernbank.transaction_service.model.enums.TransactionChannel;
-import com.modernbank.transaction_service.model.enums.TransactionStatus;
-import com.modernbank.transaction_service.model.enums.TransactionType;
+import com.modernbank.transaction_service.model.enums.*;
 import com.modernbank.transaction_service.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.Map;
 
 import static com.modernbank.transaction_service.constant.ErrorCodeConstants.INSUFFICIENT_FUNDS;
 import static com.modernbank.transaction_service.constant.ErrorCodeConstants.ACCOUNT_NOT_FOUND;
@@ -41,6 +36,8 @@ public class TransactionServiceConsumer {
     private final KafkaTemplate<String, SendNotificationRequest> notificationKafkaTemplate;
 
     private final KafkaTemplate<String, ChatNotificationRequest> chatNotificationKafkaTemplate;
+
+    private final KafkaTemplate<String, DynamicInvoiceRequest> dynamicInvoiceKafkaTemplate;
 
     private final AccountServiceClient accountServiceClient;
 
@@ -66,7 +63,7 @@ public class TransactionServiceConsumer {
     public void processStartTransferMoney(TransferMoneyRequest request) {
         log.info("Received withdraw and deposit money request: {}", request);
         try {
-                        java.util.List<String> missingFields = new java.util.ArrayList<>();
+            java.util.List<String> missingFields = new java.util.ArrayList<>();
             if (request == null) {
                 missingFields.add("request");
             } else {
@@ -166,6 +163,18 @@ public class TransactionServiceConsumer {
             }
             String receiverFullName = sb.toString().trim();
 
+            StringBuilder sbs = new StringBuilder();
+            if (sender.getFirstName() != null && !sender.getFirstName().isEmpty()) {
+                sbs.append(sender.getFirstName().substring(0, Math.min(3, sender.getFirstName().length()))).append("**** ");
+            }
+            if (sender.getSecondName() != null && !sender.getSecondName().isEmpty()) {
+                sbs.append(sender.getSecondName().substring(0, Math.min(3, sender.getSecondName().length()))).append("**** ");
+            }
+            if (sender.getLastName() != null && !sender.getLastName().isEmpty()) {
+                sbs.append(sender.getLastName().substring(0, Math.min(3, sender.getLastName().length()))).append("**** ");
+            }
+            String senderFullName = sbs.toString().trim();
+
 
             String receiverNotificationMessage = String.format(
                     "Sevgili müşteri %s, %s hesabından %.2f tutarındaki transferiniz başarıyla gerçekleşti.",
@@ -209,10 +218,9 @@ public class TransactionServiceConsumer {
             }
 
             //TODO: SEND EMAIL
-            //TODO: CREATE INVOICE AND CALL INVOICE SERVICE
 
             //Sender
-            transactionRepository.save(Transaction.builder()
+            Transaction senderTransaction = Transaction.builder()
                     .accountId(sender.getAccountId())
                     .amount(request.getAmount())
                     .currency(sender.getCurrency())
@@ -236,7 +244,32 @@ public class TransactionServiceConsumer {
                     .transactionCode("")
                     .isRecurring(false)
                     .aiFinalCategory("")
+                    .build();
+
+            senderTransaction.setInvoiceStatus(InvoiceStatus.PENDING);
+            transactionRepository.save(senderTransaction);
+
+            Map<String, Object> invoiceDataForSender = new HashMap<>();
+            invoiceDataForSender.put("senderTCKNHashed", sender.getTckn());
+            invoiceDataForSender.put("senderAccountName", sender.getAccountName());
+            invoiceDataForSender.put("senderFullName", senderFullName);
+            invoiceDataForSender.put("amount", request.getAmount());
+            invoiceDataForSender.put("senderAccountIBAN", request.getFromIBAN());
+            invoiceDataForSender.put("description", request.getDescription());
+            invoiceDataForSender.put("receiverFullName", receiverFullName);
+            invoiceDataForSender.put("receiverIBAN", request.getToIBAN());
+            invoiceDataForSender.put("currency", sender.getCurrency());
+            invoiceDataForSender.put("transactionId",senderTransaction.getId());
+            invoiceDataForSender.put("date", LocalDateTime.now());
+
+            dynamicInvoiceKafkaTemplate.send("send-invoice-service", DynamicInvoiceRequest.builder()
+                    .invoiceId("")
+                    .userId(sender.getUserId())
+                    .invoiceType("TRANSFER")
+                    .date(LocalDateTime.now())
+                    .data(invoiceDataForSender)
                     .build());
+
 
             //receiver
             transactionRepository.save(Transaction.builder()
@@ -265,11 +298,8 @@ public class TransactionServiceConsumer {
                     .aiFinalCategory("")
                     .build());
 
-            //INVOICE SERVICE MAY CALL HERE CREATE INVOICE SERVICE
             //SEND THIS MESSAGES TO NOTIFICATION AND EMAIL SERVICE
             //EMAIL SERVICE WILL SEND WITH HIM SHOPPING CART INFORMATION INCLUDES PRODUCTS PHOTOS EMAIL TO CUSTOMERS //Bunu stock serviceden felan da yapabiliriz
-
-
         } catch (Exception exception) {
             log.error("Error at transfer finalize :  ", exception.getMessage());
 

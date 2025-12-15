@@ -275,6 +275,48 @@ public class KafkaConfiguration {
         return factory;
     }
 
+
+
+    // SEND GENERATE INVOICE KAFKA
+    @Bean
+    public ProducerFactory<String, DynamicInvoiceRequest> sendGenerateInvoiceKafkaProducerFactory(){
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean
+    public KafkaTemplate<String, DynamicInvoiceRequest> sendGenerateInvoiceKafkaTemplate(){
+//        KafkaTemplate<String, WithdrawAndDepositMoneyRequest> kafkaTemplate = new KafkaTemplate<>(moneyWithdrawAndDepositProducerFactory());
+        return new KafkaTemplate<>(sendGenerateInvoiceKafkaProducerFactory());
+    }
+
+    @Bean
+    public ConsumerFactory<String, DynamicInvoiceRequest> sendGenerateInvoiceKafkaConsumerFactory(){
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "send-invoice-group");
+        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, JsonDeserializer.class);
+        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.modernbank.transaction_service.api.request.DynamicInvoiceRequest");
+        configProps.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+        return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new JsonDeserializer<>(DynamicInvoiceRequest.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, DynamicInvoiceRequest> sendGenerateInvoiceKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, DynamicInvoiceRequest> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(sendGenerateInvoiceKafkaConsumerFactory());
+        // DefaultErrorHandler ile ilişkilendir
+        factory.setCommonErrorHandler(defaultErrorHandler());
+        return factory;
+    }
+
     @Bean
     public DefaultErrorHandler defaultErrorHandler(){
         FixedBackOff fixedBackOff = new FixedBackOff(3000L,0);

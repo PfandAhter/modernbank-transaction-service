@@ -93,6 +93,12 @@ public class Transaction {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime updatedDate;
 
+    @Column(name = "invoice_id")
+    private String invoiceId; //TODO: BURADAYIM EN SON BAKARSIN...
+
+    @Column(name = "invoice_status")
+    private InvoiceStatus invoiceStatus;
+
     @Column(name = "merchant_name")
     private String merchantName;
 

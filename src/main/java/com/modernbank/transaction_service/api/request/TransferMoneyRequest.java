@@ -21,4 +21,6 @@ public class TransferMoneyRequest {
     private String toLastName;
 
     private String byAi;
+
+    private Boolean isConfirmed;
 }
