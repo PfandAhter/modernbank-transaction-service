@@ -24,4 +24,7 @@ public class ErrorCodes {
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "http_status")
+    private Integer httpStatus;
 }

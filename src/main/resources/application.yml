@@ -1,6 +1,10 @@
 server:
   port: 8083
 
+logging:
+  pattern:
+    console: %d{yyyy-MM-dd HH:mm:ss} %-5level [%X{traceId}] %logger{36} - %msg%n
+
 kafka:
   topics:
     withdraw-money: withdraw-money
@@ -60,6 +64,8 @@ spring:
       bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        interceptor.classes: com.modernbank.transaction_service.aspect.TraceIdProducerInterceptor
     consumer:
       auto-offset-reset: earliest
       bootstrap-servers: localhost:9092
@@ -70,10 +76,51 @@ spring:
           deserializer:
             value:
               delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-              trusted.packages: "com.modernbank.transaction_service.rest.controller.request"
+              trusted.packages: "*"
       group-id: transaction-group
   application:
     name: transaction-service
 
 cache:
   type: redis
+
+# Resilience4j Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      fraudMLService:
+        # When to open the circuit
+        failure-rate-threshold: 50          # Open circuit if 50% of calls fail
+        slow-call-rate-threshold: 80        # Open circuit if 80% of calls are slow
+        slow-call-duration-threshold: 3s    # Calls taking longer than 3s are slow
+        
+        # Sliding window for calculating failure rate
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10             # Evaluate last 10 calls
+        minimum-number-of-calls: 5          # Need at least 5 calls to calculate
+        
+        # Recovery settings
+        wait-duration-in-open-state: 30s    # Wait 30s before trying again
+        permitted-number-of-calls-in-half-open-state: 3  # Try 3 calls in half-open
+        
+        # Exception handling
+        record-exceptions:
+          - java.lang.Exception
+          - feign.FeignException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+
+# Actuator endpoints for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus, circuitbreakers, circuitbreakerevents
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      enabled: true
+    tags:
+      application: ${spring.application.name}

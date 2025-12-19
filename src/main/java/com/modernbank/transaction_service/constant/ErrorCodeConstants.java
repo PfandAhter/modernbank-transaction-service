@@ -59,4 +59,18 @@ public class ErrorCodeConstants {
     public static final String BANK_NOT_FOUND = "H0028";
 
     public static final String PDF_GENERATION_FAILED = "H0029";
+
+
+
+
+
+    public static final String TECH_TRANSFER_ERROR = "TECH_ERR_TRANSFER_FLOW";
+
+    public static final String TECH_DEPOSIT_ERROR = "TECH_ERR_DEPOSIT_FLOW";
+
+    public static final String TECH_START_TRANSFER_MONEY_ERROR = "TECH_ERR_START_TRANSFER_MONEY";
+
+    public static final String TECH_UPDATE_TRANSFER_MONEY_ERROR = "TECH_ERR_UPDATE_TRANSFER_MONEY";
+
+    public static final String TECH_FINALIZE_TRANSFER_MONEY_ERRORR = "TECH_ERR_FINALIZE_TRANSFER_MONEY";
 }
