@@ -31,6 +31,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         logError(e, request);
         ErrorCodes errorCodes = getErrorCodeSafe(e.getMessage());
 
+        if(errorCodes.getHttpStatus() == null) {
+            errorCodes.setHttpStatus(HttpStatus.NOT_ACCEPTABLE.value());
+        }
+
         return ResponseEntity.status(errorCodes.getHttpStatus()).body(createBusinessErrorResponseBody(e, request, errorCodes));
     }
 
@@ -79,7 +83,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                     .errorCode(exception.getMessage())
                     .serviceName("transaction-service")
                     .requestPath(httpServletRequest.getMethod() + " " + httpServletRequest.getRequestURI())
-                    .traceId(httpServletRequest.getHeader(HeaderKey.X_TRACE_ID))
+                    .traceId(httpServletRequest.getHeader(HeaderKey.CORRELATION_ID))
                     .timestamp(LocalDateTime.now())
                     .stackTrace(getTruncatedStackTrace(exception))
                     .exceptionName(exception.getClass().getName())
@@ -100,7 +104,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private void logError(Exception exception, HttpServletRequest httpServletRequest) {
         log.error("TraceId {} got error, Error: {} ",
-                httpServletRequest.getHeader(HeaderKey.X_TRACE_ID),
+                httpServletRequest.getHeader(HeaderKey.CORRELATION_ID),
                 exception.getMessage());
     }
 

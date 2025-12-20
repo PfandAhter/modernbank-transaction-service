@@ -3,7 +3,7 @@ server:
 
 logging:
   pattern:
-    console: %d{yyyy-MM-dd HH:mm:ss} %-5level [%X{traceId}] %logger{36} - %msg%n
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(%-5level) %clr([%X{traceId}]){yellow} %clr(%logger{36}){cyan} - %msg%n'
 
 kafka:
   topics:
@@ -14,6 +14,10 @@ kafka:
     transfer-finalize-money: finalize-transfer-money
     deposit-money-to-atm: deposit-money-to-atm
     withdraw-money-from-atm: withdraw-money-from-atm
+    # Fraud detection topics
+    fraud-decision: fraud-decision
+    transaction-risk-evaluated: transaction-risk-evaluated
+    transaction-dlt: transaction-service.DLT
 
 
 feign:
@@ -33,10 +37,32 @@ feign:
       url: http://localhost:8082/api/v1
       sendNotification: /notification/send
       sendChatNotification: /notification/chat/send
-    account-service: #TODO: Change PORT
+    account-service:
       url: http://localhost:8084/api/v1/account
       extractFromIBAN: /get-by-iban
       updateBalance: /balance/update
+      getProfile: /profile
+      holdAccount: /hold
+      isBlacklisted: /blacklist/check
+      confirmFraud: /fraud/confirm
+      isBlocked: /blocked/check
+    # Fraud ML Service
+    fraud-service:
+      url: ${FRAUD_SERVICE_URL:http://localhost:8001}
+      evaluate: /evaluate
+
+# Fraud Detection Configuration
+fraud:
+  enabled: true  # Set to false to disable fraud detection
+  decision:
+    hold-timeout-minutes: 15
+    strong-auth-timeout-minutes: 5
+    manual-review-timeout-minutes: 30
+  risk:
+    low-threshold: 0.30
+    high-threshold: 0.70
+  recovery:
+    stuck-threshold-minutes: 30
 
 spring:
   main:
@@ -72,11 +98,8 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
-        spring:
-          deserializer:
-            value:
-              delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-              trusted.packages: "*"
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: "*"
       group-id: transaction-group
   application:
     name: transaction-service

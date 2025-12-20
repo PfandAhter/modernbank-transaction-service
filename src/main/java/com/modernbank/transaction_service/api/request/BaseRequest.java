@@ -16,7 +16,6 @@ public class BaseRequest {
 
     private String token;
 
-    @JsonIgnore
     private String userId;
 
     @JsonIgnore
@@ -24,4 +23,7 @@ public class BaseRequest {
 
     @JsonIgnore
     private String userRole;
+
+    @JsonIgnore
+    private String correlationId;
 }

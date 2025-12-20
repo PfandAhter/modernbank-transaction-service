@@ -5,7 +5,15 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TransferMoneyRequest {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TransferMoneyRequest extends BaseRequest{
+
+    private String fromTransactionId;
+
+    private String toTransactionId;
+
     private String fromIBAN;
 
     private String toIBAN;

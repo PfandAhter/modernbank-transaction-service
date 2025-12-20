@@ -62,6 +62,15 @@ public class ErrorCodeConstants {
 
 
 
+    public static final String DYNAMIC_INSUFFICIENT_FUNDS = "DTSE-0001";
+
+    public static final String DYNAMIC_ACCOUNT_BLOCKED = "DASE-0002";
+
+    public static final String DYNAMIC_CURRENCY_MISMATCH = "DTSE-0003";
+
+    public static final String DYNAMIC_RECEIVER_MIS_MATCH = "DTSE-0004";
+
+    public static final String DYNAMIC_ACCOUNT_NOT_FOUND = "DASE-0005";
 
 
     public static final String TECH_TRANSFER_ERROR = "TECH_ERR_TRANSFER_FLOW";

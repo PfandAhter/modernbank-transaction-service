@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -56,5 +58,18 @@ public class HeaderServiceImpl implements HeaderService {
             log.error("Error while extracting userRole from token: {}", e.getMessage());
         }
         return userRole;
+    }
+
+    @Override
+    public String extractCorrelationId() {
+        String correlationId = null;
+        try{
+            correlationId = request.getHeader(HeaderKey.CORRELATION_ID);
+        }catch (Exception e){
+            log.error("Error while extracting correlationId from token: {}", e.getMessage());
+            correlationId = UUID.randomUUID().toString();
+        }
+
+        return correlationId;
     }
 }
