@@ -1,5 +1,6 @@
 package com.modernbank.transaction_service.api.dto;
 
+import com.modernbank.transaction_service.model.enums.InvoiceStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,4 +32,6 @@ public class TransactionDTO {
     private String receiverTCKN;
 
     private String receiverFullName;
+
+    private InvoiceStatus invoiceStatus;
 }

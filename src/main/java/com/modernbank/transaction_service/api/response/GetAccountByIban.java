@@ -11,10 +11,12 @@ import lombok.Setter;
 public class GetAccountByIban {
 
     private String accountId;
+    private String accountName;
     private String userId;
     private String firstName;
     private String secondName;
     private String lastName;
+    private String tckn;
     private String email;
 
     private double balance;

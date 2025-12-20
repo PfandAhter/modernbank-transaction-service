@@ -1,8 +1,10 @@
 package com.modernbank.transaction_service.service.impl;
 
+import com.modernbank.transaction_service.api.request.UpdateTransactionInvoiceStatus;
 import com.modernbank.transaction_service.entity.Transaction;
 import com.modernbank.transaction_service.model.TransactionListModel;
 import com.modernbank.transaction_service.model.TransactionModel;
+import com.modernbank.transaction_service.model.enums.InvoiceStatus;
 import com.modernbank.transaction_service.model.enums.TransactionType;
 import com.modernbank.transaction_service.repository.TransactionRepository;
 import com.modernbank.transaction_service.api.request.GetAllTransactionsRequest;
@@ -77,6 +79,31 @@ public class TransactionServiceImpl implements TransactionService {
 
                         model.setReceiverFullName(receiverInfo);
                     }
+
+                    Object invStatusObj = transaction.getInvoiceStatus();
+                    if (invStatusObj != null) {
+                        if (invStatusObj instanceof InvoiceStatus) {
+                            model.setInvoiceStatus((InvoiceStatus) invStatusObj);
+                        } else if (invStatusObj instanceof Enum) {
+                            try {
+                                model.setInvoiceStatus(InvoiceStatus.valueOf(((Enum<?>) invStatusObj).name()));
+                            } catch (IllegalArgumentException ignored) {
+
+                            }
+                        } else if (invStatusObj instanceof Number) {
+                            int idx = ((Number) invStatusObj).intValue();
+                            InvoiceStatus[] values = InvoiceStatus.values();
+                            if (idx >= 0 && idx < values.length) {
+                                model.setInvoiceStatus(values[idx]);
+                            }
+                        } else {
+                            try {
+                                model.setInvoiceStatus(InvoiceStatus.valueOf(invStatusObj.toString()));
+                            } catch (IllegalArgumentException ignored) {
+                            }
+                        }
+                    }
+
                     return model;
                 })
                 .toList();
@@ -86,6 +113,16 @@ public class TransactionServiceImpl implements TransactionService {
                 transactionPage.getTotalPages(),
                 transactionPage.getTotalElements()
         );
+    }
+
+    @Override
+    public void updateTransactionInvoiceStatus(UpdateTransactionInvoiceStatus request) {
+        Transaction transaction = transactionRepository.findById(request.getTransactionId())
+                .orElseThrow(() -> new IllegalArgumentException("Transaction not found with id: " + request.getTransactionId()));
+
+        transaction.setInvoiceStatus(request.getStatus());
+        transaction.setInvoiceId(request.getInvoiceId());
+        transactionRepository.save(transaction);
     }
 
     private TransactionModel mapToModel(Transaction transaction) {

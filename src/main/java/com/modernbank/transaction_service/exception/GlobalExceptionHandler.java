@@ -3,6 +3,7 @@ package com.modernbank.transaction_service.exception;
 import com.modernbank.transaction_service.api.client.ParameterServiceClient;
 import com.modernbank.transaction_service.api.request.LogErrorRequest;
 import com.modernbank.transaction_service.api.response.BaseResponse;
+import com.modernbank.transaction_service.constant.HeaderKey;
 import com.modernbank.transaction_service.entity.ErrorCodes;
 import com.modernbank.transaction_service.service.ErrorCacheService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -26,71 +26,93 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private final ParameterServiceClient parameterServiceClient;
 
-    @ExceptionHandler(NotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<BaseResponse> handleException(NotFoundException e, HttpServletRequest request){
-        logError(e);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createErrorResponseBody(e,request));
+    @ExceptionHandler({BusinessException.class, InsufficientFundsException.class})
+    public ResponseEntity<BaseResponse> handleBusinessException(BusinessException e, HttpServletRequest request) {
+        logError(e, request);
+        ErrorCodes errorCodes = getErrorCodeSafe(e.getMessage());
+
+        return ResponseEntity.status(errorCodes.getHttpStatus()).body(createBusinessErrorResponseBody(e, request, errorCodes));
     }
 
-    @ExceptionHandler(ErrorCodesNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    public ResponseEntity<BaseResponse> handleException(ErrorCodesNotFoundException e, HttpServletRequest request){
-        logError(e);
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(createErrorResponseBody(e,request));
+    @ExceptionHandler({RuntimeException.class, Exception.class})
+    public ResponseEntity<BaseResponse> handleTechnicalException(Exception exception, HttpServletRequest request) {
+        logError(exception, request);
+        ErrorCodes errorCodes = getErrorCodeSafe("SYSTEM_ERROR");
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponseBody(exception, request, errorCodes));
     }
 
-    @ExceptionHandler(ProcessFailedException.class)
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    public ResponseEntity<BaseResponse> handleException(ProcessFailedException e, HttpServletRequest request){
-        logError(e);
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(createErrorResponseBody(e,request));
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    public ResponseEntity<BaseResponse> handleException(RuntimeException e, HttpServletRequest request){
-        logError(e);
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(createErrorResponseBody(e,request));
-    }
-
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    public ResponseEntity<BaseResponse> handleException(Exception e, HttpServletRequest request){
-        logError(e);
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(createErrorResponseBody(e,request));
-    }
-
-    //TODO: Buraya HTTPSTATUS kodlarini da parametre servisine loglama icin gondermesini sagliyalim...
-    private BaseResponse createErrorResponseBody(Exception exception, HttpServletRequest request){
-        ErrorCodes errorCodes = getErrorCodeByErrorId(exception.getMessage());
-        logError(exception,request.getHeader("X-User-Id"));
-
+    private BaseResponse createErrorResponseBody(Exception exception, HttpServletRequest request, ErrorCodes errorCodes) {
+        logErrorToParameterService(exception, request, errorCodes);
         return new BaseResponse("FAILED", errorCodes.getError(), errorCodes.getDescription());
     }
 
-    private ErrorCodes getErrorCodeByErrorId(String code){
-        return errorCacheService.getErrorCodeByErrorId(code);
+    private BaseResponse createBusinessErrorResponseBody(BusinessException exception, HttpServletRequest request, ErrorCodes errorCodes) {
+        logErrorToParameterService(exception,request,errorCodes);
+        String messageBody = formatMessage(errorCodes.getDescription(), exception.getArgs());
+        return new BaseResponse("FAILED", errorCodes.getError(), messageBody);
     }
 
-    private void logError(Exception exception, String userId){
-        try{
+    private ErrorCodes getErrorCodeSafe(String code) {
+        try {
+            ErrorCodes ec = errorCacheService.getErrorCodeByErrorId(code);
+            if (ec != null) {
+                return ec;
+            }
+        } catch (Exception ex) {
+            log.error("Error cache service unreachable: {}", ex.getMessage());
+        }
+
+        return ErrorCodes.builder()
+                .id(code != null ? code : "UNKNOWN")
+                .error("Sistem Hatası")
+                .description("Beklenmeyen bir hata oluştu. Lütfen destek ekibiyle iletişime geçin.")
+                .httpStatus(500)
+                .build();
+    }
+
+    private void logErrorToParameterService(Exception exception, HttpServletRequest httpServletRequest, ErrorCodes errorCode) {
+        try {
             LogErrorRequest request = LogErrorRequest.builder()
                     .errorCode(exception.getMessage())
-                    .serviceName("authentication-service")
-                    .timestamp(LocalDateTime.now().toString())
-                    .stackTrace(exception.getStackTrace().toString())
+                    .serviceName("transaction-service")
+                    .requestPath(httpServletRequest.getMethod() + " " + httpServletRequest.getRequestURI())
+                    .traceId(httpServletRequest.getHeader(HeaderKey.X_TRACE_ID))
+                    .timestamp(LocalDateTime.now())
+                    .stackTrace(getTruncatedStackTrace(exception))
                     .exceptionName(exception.getClass().getName())
+                    .errorMessage(errorCode.getDescription())
                     .build();
 
-            request.setUserId(userId);
+            request.setUserId(httpServletRequest.getHeader(HeaderKey.USER_ID));
             parameterServiceClient.logError(request);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("Error log process failed " + e.getMessage());
         }
     }
 
-    private void logError(Exception exception){
-        log.error("Error: " + exception.getMessage());
+    private String getTruncatedStackTrace(Exception e) {
+        String stack = java.util.Arrays.toString(e.getStackTrace());
+        return stack.length() > 5000 ? stack.substring(0, 5000) + "..." : stack;
+    }
+
+    private void logError(Exception exception, HttpServletRequest httpServletRequest) {
+        log.error("TraceId {} got error, Error: {} ",
+                httpServletRequest.getHeader(HeaderKey.X_TRACE_ID),
+                exception.getMessage());
+    }
+
+    private String formatMessage(String template, Object[] args) {
+        if (template == null) return "Error details not available.";
+        if (args == null || args.length == 0) return template;
+
+        try {
+            return java.text.MessageFormat.format(template, args);
+        } catch (Exception e) {
+            log.warn("Message formatting failed for template: {}", template);
+            return template;
+        }
     }
 }

@@ -31,4 +31,7 @@ public interface TransactionServiceApi {
 
     @PostMapping(path = "/transactionsv2")
     GetTransactionsResponse getAllTransactionsV2(@RequestBody GetAllTransactionsRequest getAllTransactionsRequest);
+
+    @PostMapping(path = "/update-invoice-status")
+    BaseResponse updateTransactionInvoiceStatus(@RequestBody UpdateTransactionInvoiceStatus request);
 }

@@ -72,4 +72,10 @@ public class TransactionServiceController implements TransactionServiceApi {
 
         return new GetTransactionsResponse(transactionDTOs,model.getTotalElements(),model.getTotalPages());
     }
+
+    @Override
+    public BaseResponse updateTransactionInvoiceStatus(UpdateTransactionInvoiceStatus request) {
+        transactionService.updateTransactionInvoiceStatus(request);
+        return new BaseResponse("Transaction invoice status updated successfully.");
+    }
 }
