@@ -30,4 +30,29 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
              @Param("startDate") LocalDateTime startDate,
              @Param("endDate") LocalDateTime endDate,
              Pageable pageable);
+
+    @Query("SELECT COUNT(t) > 0 FROM Transaction t " +
+            "WHERE t.accountId = :accountId " +
+            "AND t.receiverIban = :receiverIban " +
+            "AND t.amount = :amount " +
+            "AND t.description = :description " +
+            "AND t.date BETWEEN :start AND :end")
+    boolean existsDuplicateTransaction(
+            @Param("accountId") String accountId,
+            @Param("receiverIban") String receiverIban,
+            @Param("amount") double amount,
+            @Param("description") String description,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
+
+    @Query("SELECT COALESCE(AVG(t.amount), 0) FROM Transaction t WHERE t.accountId = :senderAccountId AND t.date >= :since")
+    Double findAvgAmountSinceBySender(@Param("senderAccountId") String senderAccountId, @Param("since") LocalDateTime since);
+
+    Integer countByAccountIdAndDateAfter(String senderAccountId, LocalDateTime since);
+
+    Integer countByAccountIdAndDateBetween(String senderAccountId, LocalDateTime start, LocalDateTime end);
+
+    boolean existsByAccountIdAndReceiverIbanAndDateBefore(String senderAccountId, String receiverIban, LocalDateTime before);
 }

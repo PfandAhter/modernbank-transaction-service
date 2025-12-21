@@ -5,10 +5,14 @@ import org.apache.kafka.clients.producer.ProducerInterceptor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.MDC;
+import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import static com.modernbank.transaction_service.constant.HeaderKey.CORRELATION_ID;
+
+@Component
 @Slf4j
 public class TraceIdProducerInterceptor implements ProducerInterceptor<String, Object> {
 
@@ -17,7 +21,7 @@ public class TraceIdProducerInterceptor implements ProducerInterceptor<String, O
         String traceId = MDC.get("traceId");
 
         if (traceId != null) {
-            producerRecord.headers().add("X-Trace-Id", traceId.getBytes(StandardCharsets.UTF_8));
+            producerRecord.headers().add(CORRELATION_ID, traceId.getBytes(StandardCharsets.UTF_8));
         }
         return producerRecord;
     }
