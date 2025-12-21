@@ -10,6 +10,8 @@ import com.modernbank.transaction_service.exception.NotFoundException;
 import com.modernbank.transaction_service.service.event.ITransactionServiceProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.MDC;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -71,9 +73,6 @@ public class TransactionServiceProducerImpl implements ITransactionServiceProduc
                             receiver.getFirstName(), receiver.getLastName()));
         }
 
-        // ------------------------------------------------------------
-        // 2. SENARYO: GERÇEK İŞLEM - isConfirmed = TRUE
-        // ------------------------------------------------------------
         log.info("Sending transfer money request to Kafka topic (Confirmed)");
 
         // Artık güvenli, Kafka akışını başlat.

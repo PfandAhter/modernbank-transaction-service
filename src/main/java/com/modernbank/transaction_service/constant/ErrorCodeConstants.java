@@ -60,7 +60,7 @@ public class ErrorCodeConstants {
 
     public static final String PDF_GENERATION_FAILED = "H0029";
 
-
+    public static final String DUPLICATE_REQUEST = "H0046";
 
     public static final String DYNAMIC_INSUFFICIENT_FUNDS = "DTSE-0001";
 
@@ -71,6 +71,8 @@ public class ErrorCodeConstants {
     public static final String DYNAMIC_RECEIVER_MIS_MATCH = "DTSE-0004";
 
     public static final String DYNAMIC_ACCOUNT_NOT_FOUND = "DASE-0005";
+
+    public static final String DYNAMIC_USER_NOT_ACCOUNT_OWNER = "DTSE-0006";
 
 
     public static final String TECH_TRANSFER_ERROR = "TECH_ERR_TRANSFER_FLOW";

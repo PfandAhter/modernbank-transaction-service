@@ -17,7 +17,12 @@ public class NotificationServiceConsumer {
 
     @KafkaListener(topics = "notification-service", groupId = "notification-service-group", containerFactory = "notificationKafkaListenerContainerFactory")
     public void consumeNotification(SendNotificationRequest request) {
-        log.info("Received Notification by userid: " + request.getUserId());
-        notificationServiceClient.sendNotification(request);
+        try{
+            log.info("Received Notification by userid: " + request.getUserId());
+            notificationServiceClient.sendNotification(request);
+        }catch(Exception e){
+            log.error("Error: {} while sending notification by userId {}: ",e.getMessage(),request.getUserId());
+        }
+
     }
 }

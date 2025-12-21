@@ -15,10 +15,10 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @EnableCaching
 public class RedisConfiguration {
 
-    @Value("${spring.cache.redis.host}")
+    @Value("${spring.redis.host}")
     private String redisHost;
 
-    @Value("${spring.cache.redis.port}")
+    @Value("${spring.redis.port}")
     private String redisPort;
 
     @Bean

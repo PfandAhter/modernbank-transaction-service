@@ -22,7 +22,7 @@ public class KafkaTraceAspect {
         for (Object arg : args) {
             if (arg instanceof org.apache.kafka.clients.consumer.ConsumerRecord) {
                 org.apache.kafka.clients.consumer.ConsumerRecord<?, ?> record = (org.apache.kafka.clients.consumer.ConsumerRecord<?, ?>) arg;
-                org.apache.kafka.common.header.Header header = record.headers().lastHeader("X-Trace-Id");
+                org.apache.kafka.common.header.Header header = record.headers().lastHeader("X-Correlation-Id");
                 if (header != null) {
                     traceId = new String(header.value(), StandardCharsets.UTF_8);
                 }

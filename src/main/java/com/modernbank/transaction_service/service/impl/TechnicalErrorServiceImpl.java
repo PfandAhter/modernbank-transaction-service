@@ -29,7 +29,6 @@ public class TechnicalErrorServiceImpl implements TechnicalErrorService {
     private final KafkaTemplate<String, TransactionErrorEvent> errorEventKafkaTemplate;
     private final TransactionRepository transactionRepository;
 
-    // Önceki konuşmamızdaki Cache servisini buraya ekliyoruz
     private final ErrorCacheService errorCacheService;
 
     @Override
@@ -37,23 +36,22 @@ public class TechnicalErrorServiceImpl implements TechnicalErrorService {
             TransferMoneyRequest request,
             String transactionId,
             String userId,
-            String errorCode,    // Örn: H-0004
-            Object... args) {    // Örn: 1000, 5000 (Limit, Tutar vb.)
+            String errorCode,
+            Object... args) {
 
-        // 1. Dinamik Mesajı Oluştur (Çeviri İşlemi)
         String userFriendlyMessage = resolveMessage(errorCode, args);
 
         log.warn("Business error occurred. Code: {}, Message: {}", errorCode, userFriendlyMessage);
 
-        // 2. Error event yayınla (Monitoring/Loglama için teknik detaylar kalabilir)
         publishErrorEvent(TransactionErrorEvent.builder()
                 .transactionId(transactionId)
                 .userId(userId)
+                .errorType("BUSINESS_ERROR")
                 .errorCode(errorCode)
-                .errorMessage(userFriendlyMessage) // Formatlanmış mesajı loglara basmak daha iyidir
+                .errorMessage(userFriendlyMessage)
                 .transactionType(TransactionType.EXPENSE)
                 .timestamp(LocalDateTime.now())
-                .context(buildContextMap(request, args)) // Context'e argümanları da ekleyebilirsin
+                .context(buildContextMap(request, args))
                 .build());
 
         if (userId != null) {
@@ -68,19 +66,15 @@ public class TechnicalErrorServiceImpl implements TechnicalErrorService {
     @Override
     public void handleTechnicalError(
             TransferMoneyRequest request,
-            String errorCode, // Genelde teknik hataların kodu sabittir (örn: TECH-500)
+            String errorCode,
             Exception exception) {
-
-        // Teknik hatalarda genelde kullanıcıya "Sistem hatası" denir, detay verilmez.
-        // Ama exception mesajını loglama için tutarız.
-        String userFriendlyMessage = resolveMessage(errorCode, null);
-        // Eğer errorCode null ise varsayılan bir mesaj döner.
 
         log.error("Technical error - code: {}", errorCode, exception);
 
         publishErrorEvent(TransactionErrorEvent.builder()
+                .errorType("TECHNICAL_ERROR")
                 .errorCode(errorCode)
-                .errorMessage(exception.getMessage()) // Monitoring için exception mesajı
+                .errorMessage(exception.getMessage())
                 .transactionType(TransactionType.EXPENSE)
                 .timestamp(LocalDateTime.now())
                 .context(Map.of(
@@ -93,11 +87,8 @@ public class TechnicalErrorServiceImpl implements TechnicalErrorService {
         // Gidecekse "Sistemsel bir hata oluştu" şeklinde gitmeli.
     }
 
-    // --- YARDIMCI METODLAR ---
-
     private String resolveMessage(String errorCode, Object[] args) {
         try {
-            // Cache'den veya DB'den şablonu çek
             ErrorCodes errorData = errorCacheService.getErrorCodeByErrorId(errorCode);
 
             if (errorData == null) {
@@ -130,7 +121,6 @@ public class TechnicalErrorServiceImpl implements TechnicalErrorService {
         return context;
     }
 
-    // Sadece publishErrorEvent ve sendUserNotification artık 'formattedMessage' alıyor.
     private void sendUserNotification(String userId, String title, String message, String type) {
         try {
             notificationKafkaTemplate.send("notification-service",

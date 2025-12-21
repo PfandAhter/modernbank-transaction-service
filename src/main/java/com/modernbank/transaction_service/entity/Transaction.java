@@ -1,6 +1,5 @@
 package com.modernbank.transaction_service.entity;
 
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.modernbank.transaction_service.model.enums.*;
 import jakarta.annotation.Nonnull;
@@ -73,7 +72,7 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionCategory category;
 
-    @Column(name = "status")
+    @Column(name = "status", length = 50)
     @Enumerated(EnumType.STRING)
     @Nonnull
     private TransactionStatus status;
@@ -94,12 +93,12 @@ public class Transaction {
     private LocalDateTime updatedDate;
 
     @Column(name = "invoice_id")
-    private String invoiceId; //TODO: BURADAYIM EN SON BAKARSIN...
+    private String invoiceId; // TODO: BURADAYIM EN SON BAKARSIN...
 
     @Column(name = "invoice_status")
     private InvoiceStatus invoiceStatus;
 
-    @Column(name = "merchant_name")
+    @Column(name = "merchant_name") //TODO: Should be deprecated after AI categorization is live
     private String merchantName;
 
     @Column(name = "transaction_code")
@@ -110,4 +109,24 @@ public class Transaction {
 
     @Column(name = "ai_final_category")
     private String aiFinalCategory;
+
+    // ==================== FRAUD EVALUATION FIELDS ====================
+
+    @Column(name = "fraud_risk_score")
+    private Double riskScore;
+
+    @Column(name = "fraud_risk_level")
+    @Enumerated(EnumType.STRING)
+    private RiskLevel riskLevel;
+
+    @Column(name = "fraud_decision")
+    @Enumerated(EnumType.STRING)
+    private com.modernbank.transaction_service.model.enums.FraudDecision fraudDecision;
+
+    @Column(name = "fraud_evaluated_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime fraudEvaluatedAt;
+
+    @Column(name = "fraud_decision_reason")
+    private String fraudDecisionReason;
 }
