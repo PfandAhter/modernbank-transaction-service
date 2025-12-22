@@ -10,6 +10,9 @@ import com.modernbank.transaction_service.service.MapperService;
 import com.modernbank.transaction_service.service.TransactionService;
 import com.modernbank.transaction_service.service.event.ITransactionServiceProducer;
 import com.modernbank.transaction_service.service.event.IWithdrawFromATMServiceProducer;
+import com.modernbank.transaction_service.service.util.TransactionValidator;
+import com.modernbank.transaction_service.service.util.TransactionValidatorImpl;
+import com.modernbank.transaction_service.validator.annotation.Idempotent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +33,8 @@ public class TransactionServiceController implements TransactionServiceApi {
 
     private final MapperService mapperService;
 
+    private final TransactionValidator transactionValidator;
+
     @Override
     public ResponseEntity<BaseResponse> withdrawMoney(WithdrawAndDepositMoneyRequest request) {
         return null;
@@ -41,7 +46,10 @@ public class TransactionServiceController implements TransactionServiceApi {
     }
 
     @Override
+    @Idempotent
     public ResponseEntity<BaseResponse> transferMoney(TransferMoneyRequest request) {
+
+        transactionValidator.validateSufficientFunds(request.getFromIBAN(), request.getAmount());
         return ResponseEntity.ok(transactionServiceProducer.transferMoney(request));
     }
 

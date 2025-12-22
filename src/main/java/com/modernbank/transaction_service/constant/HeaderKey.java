@@ -10,4 +10,6 @@ public class HeaderKey {
     public static final String USER_EMAIL = "X-User-Email";
 
     public static final String CORRELATION_ID = "X-Correlation-Id";
+
+    public static final String IDEMPOTENCY_KEY = "X-Idempotency-Key";
 }

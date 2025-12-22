@@ -16,7 +16,11 @@ public class InvoiceGenerateServiceConsumer {
 
     @KafkaListener(topics = "send-invoice-service", groupId = "send-invoice-group", containerFactory = "sendGenerateInvoiceKafkaListenerContainerFactory")
     public void consumeGenerateInvoice(DynamicInvoiceRequest request) {
-        log.info("Received invoice generation request for this userId: " + request.getUserId());
-        invoiceServiceClient.generateInvoice(request);
+        try{
+            log.info("Received invoice generation request for this userId: " + request.getUserId());
+            invoiceServiceClient.generateInvoice(request);
+        }catch (Exception e){
+            log.error("Error: {} while generating invoice for userId{}: ",e.getMessage(), request.getUserId());
+        }
     }
 }
