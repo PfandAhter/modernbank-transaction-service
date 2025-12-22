@@ -1,7 +1,6 @@
 package com.modernbank.transaction_service.api.request;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
@@ -10,9 +9,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class TransferMoneyRequest extends BaseRequest{
 
-    private String fromTransactionId;
+    private String senderTransactionId;
 
-    private String toTransactionId;
+    private String receiverTransactionId;
 
     private String fromIBAN;
 

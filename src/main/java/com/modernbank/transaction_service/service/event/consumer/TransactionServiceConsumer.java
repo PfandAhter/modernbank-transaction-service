@@ -243,7 +243,7 @@ public class TransactionServiceConsumer {
 
         log.warn("Transfer blocked: transactionId={}, userId={}",
                 transaction.getId(), senderAccount.getUserId());
-        throw new NotFoundException("Transaction rejected due to security reasons");
+        //throw new NotFoundException("Transaction rejected due to security reasons");
     }
 
     private Transaction createTransactionRecordForSender(

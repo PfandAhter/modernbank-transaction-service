@@ -22,8 +22,7 @@ public class ChatNotificationServiceConsumer {
             log.info("Received Chat Notification by userid: {}", request.getUserId());
             notificationServiceClient.sendChatNotification(request);
         } catch (Exception e) {
-            log.error("Error processing chat notification: {}", e.getMessage());
-            throw new ProcessFailedException("Failed to process chat notification: " + e.getMessage());
+            log.error("Error: {} processing chat notification by userId: {}", e.getMessage(), request.getUserId());
         }
 
     }
