@@ -129,4 +129,7 @@ public class Transaction {
 
     @Column(name = "fraud_decision_reason")
     private String fraudDecisionReason;
+
+    @Column(name = "fraud_decision_confirmed_date")
+    private LocalDateTime localDateTime;
 }

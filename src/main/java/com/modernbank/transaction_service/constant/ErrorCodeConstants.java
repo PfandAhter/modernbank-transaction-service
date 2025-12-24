@@ -74,6 +74,8 @@ public class ErrorCodeConstants {
 
     public static final String DYNAMIC_USER_NOT_ACCOUNT_OWNER = "DTSE-0006";
 
+    public static final String DYNAMIC_RECEIVER_IBAN_BLACKLISTED = "DTSE-0007";
+
 
     public static final String TECH_TRANSFER_ERROR = "TECH_ERR_TRANSFER_FLOW";
 
@@ -83,5 +85,7 @@ public class ErrorCodeConstants {
 
     public static final String TECH_UPDATE_TRANSFER_MONEY_ERROR = "TECH_ERR_UPDATE_TRANSFER_MONEY";
 
-    public static final String TECH_FINALIZE_TRANSFER_MONEY_ERRORR = "TECH_ERR_FINALIZE_TRANSFER_MONEY";
+    public static final String TECH_FINALIZE_TRANSFER_MONEY_ERROR = "TECH_ERR_FINALIZE_TRANSFER_MONEY";
+
+    public static final String TECH_WITHDRAW_MONEY_ERROR = "TECH_WITHDRAW_MONEY_ERROR";
 }
