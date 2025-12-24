@@ -46,6 +46,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
             @Param("end") LocalDateTime end
     );
 
+    @Query("SELECT COUNT(t) > 0 FROM Transaction t WHERE t.receiverIban = :iban " +
+            "AND t.amount = :amount AND t.type = :type " +
+            "AND t.date BETWEEN :startTime AND :endTime")
+    boolean existsDuplicateWithdrawDeposit(
+            @Param("iban") String iban,
+            @Param("amount") Double amount,
+            @Param("type") TransactionType type,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime);
+
 
     @Query("SELECT COALESCE(AVG(t.amount), 0) FROM Transaction t WHERE t.accountId = :senderAccountId AND t.date >= :since")
     Double findAvgAmountSinceBySender(@Param("senderAccountId") String senderAccountId, @Param("since") LocalDateTime since);

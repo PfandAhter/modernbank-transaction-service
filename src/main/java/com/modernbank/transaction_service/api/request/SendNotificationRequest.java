@@ -2,6 +2,8 @@ package com.modernbank.transaction_service.api.request;
 
 import lombok.*;
 
+import java.util.Map;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -16,4 +18,6 @@ public class SendNotificationRequest{
     private String type;
 
     private String title;
+
+    Map<String,Object> arguments;
 }

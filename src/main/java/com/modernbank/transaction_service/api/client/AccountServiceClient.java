@@ -3,6 +3,7 @@ package com.modernbank.transaction_service.api.client;
 import com.modernbank.transaction_service.api.response.AccountProfileResponse;
 import com.modernbank.transaction_service.api.response.GetAccountByIban;
 import com.modernbank.transaction_service.api.response.BaseResponse;
+import com.modernbank.transaction_service.api.response.GetAccountByIdResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,29 +15,25 @@ public interface AccountServiceClient {
         @GetMapping(path = "${feign.client.account-service.extractFromIBAN}")
         GetAccountByIban getAccountByIban(@RequestParam(value = "iban") String iban);
 
+        @GetMapping(path = "${feign.client.account-service.extractFromId}")
+        GetAccountByIdResponse getAccountById(@RequestParam(value = "accountId") String accountId);
+
         @PostMapping(path = "${feign.client.account-service.updateBalance}")
         BaseResponse updateBalance(@RequestParam(value = "iban") String iban,
                         @RequestParam(value = "balance") double balance);
 
-        /**
-         * Get account profile for fraud detection (READ-ONLY).
-         * Returns account age, credit score, avg balance, previous fraud count, etc.
-         */
+
         @GetMapping(path = "${feign.client.account-service.getProfile}")
         AccountProfileResponse getAccountProfileByAccountId(@RequestParam(value = "accountId") String accountId);
 
-        /**
-         * Hold an account due to suspicious activity.
-         * Used when BLOCK decision is made.
-         */
         @PostMapping(path = "${feign.client.account-service.holdAccount}")
         BaseResponse holdAccount(@RequestParam(value = "accountId") String accountId);
 
-        /**
-         * Check if a receiver IBAN is blacklisted.
-         */
         @GetMapping(path = "${feign.client.account-service.isBlacklisted}")
         Boolean isReceiverBlacklisted(@RequestParam(value = "iban") String iban);
+
+        @GetMapping(path = "${feign.client.account-service.isBlocked}")
+        Boolean isAccountBlocked(@RequestParam(value = "accountId") String accountId);
 
         /**
          * Confirm fraud for a user - increments previousFraudCount.
@@ -48,10 +45,4 @@ public interface AccountServiceClient {
                         @RequestParam(value = "accountId") String accountId,
                         @RequestParam(value = "reason") String reason);
 
-        /**
-         * Check if account is temporarily blocked.
-         * Must be called BEFORE starting any transfer.
-         */
-        @GetMapping(path = "${feign.client.account-service.isBlocked}")
-        Boolean isAccountBlocked(@RequestParam(value = "accountId") String accountId);
 }
