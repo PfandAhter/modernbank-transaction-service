@@ -88,4 +88,6 @@ public class ErrorCodeConstants {
     public static final String TECH_FINALIZE_TRANSFER_MONEY_ERROR = "TECH_ERR_FINALIZE_TRANSFER_MONEY";
 
     public static final String TECH_WITHDRAW_MONEY_ERROR = "TECH_WITHDRAW_MONEY_ERROR";
+
+    public static final String TECH_DEPOSIT_MONEY_ERROR = "TECH_DEPOSIT_MONEY_ERROR";
 }

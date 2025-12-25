@@ -13,9 +13,17 @@ public class AccountDTO {
 
     private String iban;
 
+    private String userId;
+
     private String name;
 
     private double balance;
+
+    private String firstName;
+
+    private String secondName;
+
+    private String lastName;
 
     private Currency currency;
 }

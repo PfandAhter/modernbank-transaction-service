@@ -46,11 +46,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
             @Param("end") LocalDateTime end
     );
 
-    @Query("SELECT COUNT(t) > 0 FROM Transaction t WHERE t.receiverIban = :iban " +
+    @Query("SELECT COUNT(t) > 0 FROM Transaction t WHERE t.accountId = :accountId " +
             "AND t.amount = :amount AND t.type = :type " +
             "AND t.date BETWEEN :startTime AND :endTime")
     boolean existsDuplicateWithdrawDeposit(
-            @Param("iban") String iban,
+            @Param("accountId") String accountId,
             @Param("amount") Double amount,
             @Param("type") TransactionType type,
             @Param("startTime") LocalDateTime startTime,

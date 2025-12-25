@@ -1,7 +1,11 @@
 package com.modernbank.transaction_service.service.util;
 
-public interface TransactionValidator {
-    void validateSufficientFunds(String iban, double amount);
+import com.modernbank.transaction_service.api.request.TransferMoneyRequest;
 
-    void validateUserOwnership(String userId, String fromIBAN);
+public interface TransactionValidator {
+    void validateTransferMoney(TransferMoneyRequest request);
+
+    //void validateSufficientFunds(String iban, double amount);
+
+    //void validateUserOwnership(String userId, String fromIBAN);
 }

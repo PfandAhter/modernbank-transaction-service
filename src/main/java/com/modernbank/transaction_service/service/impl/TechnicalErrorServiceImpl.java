@@ -33,7 +33,7 @@ public class TechnicalErrorServiceImpl implements TechnicalErrorService {
 
     @Override
     public void handleBusinessError(
-            TransferMoneyRequest request,
+            //TransferMoneyRequest request,
             String transactionId,
             String userId,
             String errorCode,
@@ -51,7 +51,7 @@ public class TechnicalErrorServiceImpl implements TechnicalErrorService {
                 .errorMessage(userFriendlyMessage)
                 .transactionType(TransactionType.EXPENSE)
                 .timestamp(LocalDateTime.now())
-                .context(buildContextMap(request, args))
+                //.context(buildContextMap(request, args))
                 .build());
 
         if (userId != null) {
@@ -65,7 +65,7 @@ public class TechnicalErrorServiceImpl implements TechnicalErrorService {
 
     @Override
     public void handleTechnicalError(
-            TransferMoneyRequest request,
+            //TransferMoneyRequest request,
             String errorCode,
             Exception exception) {
 
@@ -77,10 +77,10 @@ public class TechnicalErrorServiceImpl implements TechnicalErrorService {
                 .errorMessage(exception.getMessage())
                 .transactionType(TransactionType.EXPENSE)
                 .timestamp(LocalDateTime.now())
-                .context(Map.of(
-                        "fromIBAN", request != null ? request.getFromIBAN() : "UNKNOWN",
-                        "exceptionType", exception.getClass().getSimpleName()
-                ))
+                //.context(Map.of(
+                //        "fromIBAN", request != null ? request.getFromIBAN() : "UNKNOWN",
+                //        "exceptionType", exception.getClass().getSimpleName()
+                //))
                 .build());
 
         // Teknik hatada kullanıcıya bildirim gitmeli mi? Proje kararıdır.
