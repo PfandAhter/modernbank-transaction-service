@@ -40,6 +40,8 @@ feign:
     account-service:
       url: http://localhost:8084/api/v1/account
       extractFromIBAN: /get-by-iban
+      extractFromId: /get-by-accountId
+      getAccounts: /get
       updateBalance: /balance/update
       getProfile: /profile
       holdAccount: /hold

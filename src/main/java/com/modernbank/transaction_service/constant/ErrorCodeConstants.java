@@ -90,4 +90,6 @@ public class ErrorCodeConstants {
     public static final String TECH_WITHDRAW_MONEY_ERROR = "TECH_WITHDRAW_MONEY_ERROR";
 
     public static final String TECH_DEPOSIT_MONEY_ERROR = "TECH_DEPOSIT_MONEY_ERROR";
+
+    public static final String TECH_ACCOUNT_SERVICE_CLIENT_NOT_RESPONSE_ERROR = "TECH_ACCOUNT_SERVICE_CLIENT_NOT_RESPONSE_ERROR";
 }
