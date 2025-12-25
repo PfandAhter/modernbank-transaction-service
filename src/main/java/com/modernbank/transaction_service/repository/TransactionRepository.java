@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, String> {
@@ -46,15 +48,26 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
             @Param("end") LocalDateTime end
     );
 
-    @Query("SELECT COUNT(t) > 0 FROM Transaction t WHERE t.receiverIban = :iban " +
+    @Query("SELECT COUNT(t) > 0 FROM Transaction t WHERE t.accountId = :accountId " +
             "AND t.amount = :amount AND t.type = :type " +
             "AND t.date BETWEEN :startTime AND :endTime")
     boolean existsDuplicateWithdrawDeposit(
-            @Param("iban") String iban,
+            @Param("accountId") String accountId,
             @Param("amount") Double amount,
             @Param("type") TransactionType type,
             @Param("startTime") LocalDateTime startTime,
             @Param("endTime") LocalDateTime endTime);
+
+    @Query("""
+    SELECT t FROM Transaction t
+    WHERE t.accountId IN :accountIds
+    AND t.date BETWEEN :start AND :end
+""")
+    Optional<List<Transaction>> findTransactionsForAnalysis(
+            @Param("accountIds") List<String> accountIds,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 
 
     @Query("SELECT COALESCE(AVG(t.amount), 0) FROM Transaction t WHERE t.accountId = :senderAccountId AND t.date >= :since")

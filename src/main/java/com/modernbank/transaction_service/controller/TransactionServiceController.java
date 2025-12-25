@@ -48,8 +48,10 @@ public class TransactionServiceController implements TransactionServiceApi {
     @Override
     @Idempotent
     public ResponseEntity<BaseResponse> transferMoney(TransferMoneyRequest request) {
+//        transactionValidator.validateSufficientFunds(request.getFromIBAN(), request.getAmount());
+//        transactionValidator.validateUserOwnership(request.getUserId(),request.getFromIBAN());
+        transactionValidator.validateTransferMoney(request);
 
-        transactionValidator.validateSufficientFunds(request.getFromIBAN(), request.getAmount());
         return ResponseEntity.ok(transactionServiceProducer.transferMoney(request));
     }
 

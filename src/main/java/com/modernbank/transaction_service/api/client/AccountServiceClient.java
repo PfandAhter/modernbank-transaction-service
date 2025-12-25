@@ -1,9 +1,6 @@
 package com.modernbank.transaction_service.api.client;
 
-import com.modernbank.transaction_service.api.response.AccountProfileResponse;
-import com.modernbank.transaction_service.api.response.GetAccountByIban;
-import com.modernbank.transaction_service.api.response.BaseResponse;
-import com.modernbank.transaction_service.api.response.GetAccountByIdResponse;
+import com.modernbank.transaction_service.api.response.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +14,9 @@ public interface AccountServiceClient {
 
         @GetMapping(path = "${feign.client.account-service.extractFromId}")
         GetAccountByIdResponse getAccountById(@RequestParam(value = "accountId") String accountId);
+
+        @GetMapping(path = "${feign.client.account-service.getAccounts}")
+        GetAccountsResponse getAccounts(@RequestParam("X-User-Id") String userId);
 
         @PostMapping(path = "${feign.client.account-service.updateBalance}")
         BaseResponse updateBalance(@RequestParam(value = "iban") String iban,

@@ -2,6 +2,7 @@ package com.modernbank.transaction_service.model.enums;
 
 public enum TransactionStatus {
     INITIATED("INITIATED"),
+    APPROVED("APPROVED"),
     FRAUD_REVIEW("FRAUD_REVIEW"),
     HOLD("HOLD"),
     BLOCKED("BLOCKED"),
