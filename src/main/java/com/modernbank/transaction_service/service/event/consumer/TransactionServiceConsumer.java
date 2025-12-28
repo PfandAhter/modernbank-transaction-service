@@ -497,6 +497,7 @@ public class TransactionServiceConsumer {
                 "İşlem Reddedildi",
                 traceId
         );
+        updatePreviousFraudFlagSafe(senderAccount.getAccountId(), true);
 
         log.warn("Transfer blocked: transactionId={}, userId={}",
                 transaction.getId(), senderAccount.getUserId());
@@ -686,6 +687,7 @@ public class TransactionServiceConsumer {
 
             // TODO: SEND EMAIL
             //TODO: ACCOUNTSERVICE ACCOUNT PREVIOUS TRANSACTION IS FRAUD FLAG UPDATE TO FALSE
+            updatePreviousFraudFlagSafe(sender.getAccountId(), false);
 
             // Sender
             Transaction senderTransaction = transactionRepository.findById(request.getSenderTransactionId())
@@ -734,6 +736,14 @@ public class TransactionServiceConsumer {
             }
         } catch (Exception e) {
             log.warn("Failed to send chat notification for transaction: {}. Error: {}", request.getSenderTransactionId(), e.getMessage());
+        }
+    }
+
+    private void updatePreviousFraudFlagSafe(String accountId, Boolean flag){
+        try{
+            accountServiceClient.updatePreviousFraudFlag(accountId, flag);
+        }catch(Exception e){
+            log.warn("Failed to update previous fraud flag for accountId: {}. Error: {}", accountId, e.getMessage());
         }
     }
 

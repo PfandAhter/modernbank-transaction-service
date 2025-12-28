@@ -48,6 +48,7 @@ feign:
       isBlacklisted: /blacklist/check
       confirmFraud: /fraud/confirm
       isBlocked: /blocked/check
+      updatePreviousFraudFlag: /fraud/flag/update
     # Fraud ML Service
     fraud-service:
       url: ${FRAUD_SERVICE_URL:http://localhost:8001}
