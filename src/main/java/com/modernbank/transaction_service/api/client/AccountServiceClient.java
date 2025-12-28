@@ -45,4 +45,9 @@ public interface AccountServiceClient {
                         @RequestParam(value = "accountId") String accountId,
                         @RequestParam(value = "reason") String reason);
 
+        @PostMapping(path = "${feign.client.account-service.updatePreviousFraudFlag}")
+        BaseResponse updatePreviousFraudFlag(
+                        @RequestParam(value = "accountId") String accountId,
+                        @RequestParam(value = "flag") Boolean flag);
+
 }

@@ -93,7 +93,7 @@ public class Transaction {
     private LocalDateTime updatedDate;
 
     @Column(name = "invoice_id")
-    private String invoiceId; // TODO: BURADAYIM EN SON BAKARSIN...
+    private String invoiceId;
 
     @Column(name = "invoice_status")
     private InvoiceStatus invoiceStatus;
