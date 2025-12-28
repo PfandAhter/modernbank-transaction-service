@@ -21,6 +21,16 @@ public class TransactionValidatorImpl implements TransactionValidator {
         validateSufficientFunds(request.getFromIBAN(), request.getAmount());
         validateUserOwnership(request.getUserId(), request.getFromIBAN());
         isReceiverIBANBlacklisted(request.getToIBAN());
+        validateIBANsAreDifferent(request.getFromIBAN(), request.getToIBAN());
+    }
+
+    private void validateIBANsAreDifferent(String fromIBAN, String toIBAN) {
+        if (fromIBAN.equals(toIBAN)) {
+            throw new BusinessException(DYNAMIC_SAME_IBAN_TRANSFER,
+                    fromIBAN,
+                    toIBAN
+            );
+        }
     }
 
     private void validateSufficientFunds(String iban, double amount) {
@@ -40,7 +50,7 @@ public class TransactionValidatorImpl implements TransactionValidator {
         boolean isBlacklisted = accountServiceClient.isReceiverBlacklisted(iban);
 
         if (isBlacklisted) {
-            throw new BusinessException(DYNAMIC_RECEIVER_IBAN_BLACKLISTED, iban); //TODO: Implement this dynamic error code.
+            throw new BusinessException(DYNAMIC_RECEIVER_IBAN_BLACKLISTED, iban);
         }
     }
 
