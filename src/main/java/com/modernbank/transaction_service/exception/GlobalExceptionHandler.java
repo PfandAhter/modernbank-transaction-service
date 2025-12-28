@@ -6,6 +6,7 @@ import com.modernbank.transaction_service.api.response.BaseResponse;
 import com.modernbank.transaction_service.constant.HeaderKey;
 import com.modernbank.transaction_service.entity.ErrorCodes;
 import com.modernbank.transaction_service.service.ErrorCacheService;
+import feign.RetryableException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.time.LocalDateTime;
 
+import static com.modernbank.transaction_service.constant.ErrorCodeConstants.SERVICE_UNAVAILABLE;
+import static com.modernbank.transaction_service.constant.ErrorCodeConstants.SYSTEM_ERROR;
+
 @RestControllerAdvice
 @RequiredArgsConstructor
 @Slf4j
@@ -25,6 +29,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private final ErrorCacheService errorCacheService;
 
     private final ParameterServiceClient parameterServiceClient;
+
+    @ExceptionHandler(RetryableException.class)
+    public ResponseEntity<BaseResponse> handleRetryableException(RetryableException e, HttpServletRequest request) {
+        log.error("Servis erişim hatası (Retry Failed). Detay: {}", e.getMessage());
+        ErrorCodes errorCodes = getErrorCodeSafe(SERVICE_UNAVAILABLE);
+
+        return ResponseEntity
+                .status(errorCodes.getHttpStatus())
+                .body(createErrorResponseBody(e, request, errorCodes));
+    }
 
     @ExceptionHandler({BusinessException.class, InsufficientFundsException.class})
     public ResponseEntity<BaseResponse> handleBusinessException(BusinessException e, HttpServletRequest request) {
@@ -41,7 +55,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({RuntimeException.class, Exception.class})
     public ResponseEntity<BaseResponse> handleTechnicalException(Exception exception, HttpServletRequest request) {
         logError(exception, request);
-        ErrorCodes errorCodes = getErrorCodeSafe("SYSTEM_ERROR");
+        ErrorCodes errorCodes = getErrorCodeSafe(SYSTEM_ERROR);
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -76,6 +76,8 @@ public class ErrorCodeConstants {
 
     public static final String DYNAMIC_RECEIVER_IBAN_BLACKLISTED = "DTSE-0007";
 
+    public static final String DYNAMIC_SAME_IBAN_TRANSFER = "DTSE-0008";
+
 
     public static final String TECH_TRANSFER_ERROR = "TECH_ERR_TRANSFER_FLOW";
 
@@ -92,4 +94,8 @@ public class ErrorCodeConstants {
     public static final String TECH_DEPOSIT_MONEY_ERROR = "TECH_DEPOSIT_MONEY_ERROR";
 
     public static final String TECH_ACCOUNT_SERVICE_CLIENT_NOT_RESPONSE_ERROR = "TECH_ACCOUNT_SERVICE_CLIENT_NOT_RESPONSE_ERROR";
+
+    public static final String SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE";
+
+    public static final String SYSTEM_ERROR = "SYSTEM_ERROR";
 }
