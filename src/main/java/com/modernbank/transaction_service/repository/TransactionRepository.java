@@ -33,6 +33,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
              @Param("endDate") LocalDateTime endDate,
              Pageable pageable);
 
+
+    Page<Transaction> findAllByAccountIdInAndTypeAndDateBetween(
+            List<String> accountIds, TransactionType type, LocalDateTime start, LocalDateTime end, Pageable pageable);
+
+
     @Query("SELECT COUNT(t) > 0 FROM Transaction t " +
             "WHERE t.accountId = :accountId " +
             "AND t.receiverIban = :receiverIban " +
