@@ -1,7 +1,10 @@
 package com.modernbank.transaction_service.service.impl;
 
+import com.modernbank.transaction_service.api.client.AccountServiceClient;
 import com.modernbank.transaction_service.api.request.UpdateTransactionInvoiceStatus;
+import com.modernbank.transaction_service.api.response.GetAccountsResponse;
 import com.modernbank.transaction_service.entity.Transaction;
+import com.modernbank.transaction_service.api.dto.AccountDTO;
 import com.modernbank.transaction_service.model.TransactionListModel;
 import com.modernbank.transaction_service.model.TransactionModel;
 import com.modernbank.transaction_service.model.enums.InvoiceStatus;
@@ -25,6 +28,8 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
 
+    private final AccountServiceClient accountServiceClient;
+
     @Override
     public TransactionListModel getAllTransactionsByAccountId(GetAllTransactionsRequest request) {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
@@ -43,13 +48,28 @@ public class TransactionServiceImpl implements TransactionService {
             startDate = endDate.minusMonths(1);
         }
 
-        Page<Transaction> transactionPage = transactionRepository.findAllByAccountIdAndTypeAndDateBetween(
+        List<String> accountIds;
+        if ("ALL".equalsIgnoreCase(request.getAccountId())) {
+            // userId parametresi de request'e eklenmeli
+            GetAccountsResponse accountsResponse = accountServiceClient.getAccounts(request.getUserId());
+            accountIds = accountsResponse.getAccounts().stream()
+                    .map(AccountDTO::getId)
+                    .toList();
+        } else {
+            accountIds = List.of(request.getAccountId());
+        }
+
+        Page<Transaction> transactionPage = transactionRepository
+                .findAllByAccountIdInAndTypeAndDateBetween(
+                        accountIds, type, startDate, endDate, pageable);
+
+        /*Page<Transaction> transactionPage = transactionRepository.findAllByAccountIdAndTypeAndDateBetween(
                 request.getAccountId(),
                 type,
                 startDate,
                 endDate,
                 pageable
-        );
+        );*/
 
         List<TransactionModel> transactionModels = transactionPage.getContent().stream()
                 .map(transaction -> {
