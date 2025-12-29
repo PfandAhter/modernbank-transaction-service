@@ -7,7 +7,7 @@ on:
 
 env:
   ACR_NAME: ataberkbulutacr
-  IMAGE_NAME: notification-service
+  IMAGE_NAME: transaction-service
   CLUSTER_NAME: ataberk-bakirbank-aks-cluster
   RESOURCE_GROUP: ataberk-bakirbank-aks-cluster
 
