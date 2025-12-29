@@ -34,6 +34,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
              Pageable pageable);
 
 
+    @Query("""
+    SELECT t FROM Transaction t
+    WHERE t.accountId IN :accountIds
+    AND (:type IS NULL OR t.type = :type)
+    AND (:startDate IS NULL OR t.date >= :startDate)
+    AND (:endDate IS NULL OR t.date <= :endDate)
+    ORDER BY t.date DESC
+""")
     Page<Transaction> findAllByAccountIdInAndTypeAndDateBetween(
             List<String> accountIds, TransactionType type, LocalDateTime start, LocalDateTime end, Pageable pageable);
 
