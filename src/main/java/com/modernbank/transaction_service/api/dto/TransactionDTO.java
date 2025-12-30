@@ -25,11 +25,19 @@ public class TransactionDTO {
 
     private String status;
 
+    private String invoiceId;
+
     private String description;
 
     private LocalDateTime date;
 
     private String receiverTCKN;
+
+    private String receiverFirstName;
+
+    private String receiverSecondName;
+
+    private String receiverLastName;
 
     private String receiverFullName;
 
