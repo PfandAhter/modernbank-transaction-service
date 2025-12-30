@@ -25,6 +25,8 @@ public class TransactionModel {
 
     private String status;
 
+    private String invoiceId;
+
     private String description;
 
     private LocalDateTime date;
