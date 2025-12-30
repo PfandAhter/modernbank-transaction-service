@@ -59,17 +59,17 @@ public class TransactionServiceImpl implements TransactionService {
             accountIds = List.of(request.getAccountId());
         }
 
-        Page<Transaction> transactionPage = transactionRepository
+        /*Page<Transaction> transactionPage = transactionRepository
                 .findAllByAccountIdInAndTypeAndDateBetween(
-                        accountIds, type, startDate, endDate, pageable);
+                        accountIds, type, startDate, endDate, pageable);*/
 
-        /*Page<Transaction> transactionPage = transactionRepository.findAllByAccountIdAndTypeAndDateBetween(
+        Page<Transaction> transactionPage = transactionRepository.findAllByAccountIdAndTypeAndDateBetween(
                 request.getAccountId(),
                 type,
                 startDate,
                 endDate,
                 pageable
-        );*/
+        );
 
         List<TransactionModel> transactionModels = transactionPage.getContent().stream()
                 .map(transaction -> {
