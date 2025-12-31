@@ -137,6 +137,7 @@ public class WithdrawFromATMServiceConsumer {
 
             GetATMNameAndIDResponse atmInfo = atmReportingServiceClient.getATMById(request.getAtmId());
 
+            updateTransactionLimit(senderAccountInfo.getAccountId(), request.getAmount(), TransactionCategory.DEPOSIT.getCategory());
             notificationServiceClient.sendNotification(SendNotificationRequest.builder()
                     .userId(senderAccountInfo.getUserId())
                     .title("Deposit Money to ATM")
@@ -261,6 +262,14 @@ public class WithdrawFromATMServiceConsumer {
         } catch (Exception e) {
             log.error("Error occurred while processing withdraw money from atm request: {}", e.getMessage());
             // Call Notification Service...
+        }
+    }
+
+    private void updateTransactionLimit(String accountId, Double amount, String category){
+        try{
+            accountServiceClient.updateLimit(accountId, amount, category);
+        }catch(Exception e){
+            log.warn("Failed to update transaction limit for accountId: {}. Error: {}", accountId, e.getMessage());
         }
     }
 }
