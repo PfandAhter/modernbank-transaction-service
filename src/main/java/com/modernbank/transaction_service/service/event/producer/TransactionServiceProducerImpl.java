@@ -73,6 +73,10 @@ public class TransactionServiceProducerImpl implements ITransactionServiceProduc
                             receiver.getFirstName(), receiver.getLastName()));
         }
 
+        if(request.getDescription().isEmpty()){
+            request.setDescription("Sistem tarafından otomatik oluşturuldu.");
+        }
+
         log.info("Sending transfer money request to Kafka topic (Confirmed)");
 
         // Artık güvenli, Kafka akışını başlat.

@@ -53,28 +53,60 @@ public class TransactionAnalyzeServiceImpl implements TransactionAnalyzeService 
         if (response == null) {
             String message = "İşleminiz sırasında sistemsel bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.";
             sendSafeNotification(request.getUserId(), message, "ERROR", "Sistem Hatası", traceId);
-            return TransactionAnalyzeModel.builder().transactions(List.of()).build();
+            return TransactionAnalyzeModel.builder()
+                    .analyzeRange(request.getAnalyzeRange())
+                    .currentPeriodTransactions(List.of())
+                    .previousPeriodTransactions(List.of())
+                    .totalHistoricalTransactionCount(0)
+                    .historicalAverageAmount(0.0)
+                    .build();
         }
-        DateRangeModel dateRange = getDateRange(request.getAnalyzeRange());
 
         List<String> accountIdList = response.getAccounts().stream()
                 .map(AccountDTO::getId)
                 .toList();
 
+        // Current period
+        DateRangeModel currentDateRange = getDateRange(request.getAnalyzeRange());
+        List<EnrichedTransaction> currentPeriodTransactions = getEnrichedTransactions(accountIdList, currentDateRange);
+
+        // Previous period (same duration, preceding the current period)
+        DateRangeModel previousDateRange = getPreviousDateRange(request.getAnalyzeRange(), currentDateRange);
+        List<EnrichedTransaction> previousPeriodTransactions = getEnrichedTransactions(accountIdList,
+                previousDateRange);
+
+        // Historical data for dynamic threshold calculation
+        Integer totalHistoricalTransactionCount = transactionRepository.countAllByAccountIdIn(accountIdList);
+        Double historicalAverageAmount = transactionRepository.getAverageAmountByAccountIdIn(accountIdList);
+
+        return TransactionAnalyzeModel.builder()
+                .analyzeRange(request.getAnalyzeRange())
+                .currentPeriodTransactions(currentPeriodTransactions)
+                .previousPeriodTransactions(previousPeriodTransactions)
+                .totalHistoricalTransactionCount(
+                        totalHistoricalTransactionCount != null ? totalHistoricalTransactionCount : 0)
+                .historicalAverageAmount(historicalAverageAmount != null ? historicalAverageAmount : 0.0)
+                .build();
+    }
+
+    private List<EnrichedTransaction> getEnrichedTransactions(List<String> accountIdList, DateRangeModel dateRange) {
         List<Transaction> transactionList = transactionRepository.findTransactionsForAnalysis(
-                        accountIdList,
-                        dateRange.getStart(),
-                        dateRange.getEnd())
-                .orElseThrow(() -> new NotFoundException("Transaction History Not Found"));
+                accountIdList,
+                dateRange.getStart(),
+                dateRange.getEnd())
+                .orElse(List.of());
+
+        if (transactionList.isEmpty()) {
+            return List.of();
+        }
 
         List<FraudEvaluation> frauds = fraudEvaluationRepository.findByTransactionIdIn(
-                transactionList.stream().map(Transaction::getId).toList()
-        );
+                transactionList.stream().map(Transaction::getId).toList());
 
         Map<String, FraudEvaluation> fraudMap = frauds.stream()
                 .collect(Collectors.toMap(FraudEvaluation::getTransactionId, Function.identity(), (a, b) -> a));
 
-        List<EnrichedTransaction> enrichedTransactions = transactionList.stream()
+        return transactionList.stream()
                 .map(transaction -> {
                     EnrichedTransaction enriched = new EnrichedTransaction();
                     enriched.setTransaction(transaction);
@@ -82,10 +114,15 @@ public class TransactionAnalyzeServiceImpl implements TransactionAnalyzeService 
                     return enriched;
                 })
                 .toList();
+    }
 
-        return TransactionAnalyzeModel.builder()
-                .transactions(enrichedTransactions)
-                .build();
+    private DateRangeModel getPreviousDateRange(AnalyzeRange analyzeRange, DateRangeModel currentDateRange) {
+        LocalDateTime previousEnd = currentDateRange.getStart();
+        LocalDateTime previousStart = switch (analyzeRange) {
+            case LAST_7_DAYS -> previousEnd.minusDays(7);
+            case LAST_30_DAYS -> previousEnd.minusDays(30);
+        };
+        return new DateRangeModel(previousStart, previousEnd);
     }
 
     private GetAccountsResponse getAccounts(String userId) {
@@ -96,16 +133,15 @@ public class TransactionAnalyzeServiceImpl implements TransactionAnalyzeService 
 
             technicalErrorService.handleTechnicalError(
                     TECH_ACCOUNT_SERVICE_CLIENT_NOT_RESPONSE_ERROR,
-                    exception
-            );
+                    exception);
             return null;
         }
     }
 
     private void sendSafeNotification(String userId, String message, String type, String title, String traceId) {
         try {
-            ProducerRecord<String, SendNotificationRequest> record =
-                    new ProducerRecord<>("notification-service", SendNotificationRequest.builder()
+            ProducerRecord<String, SendNotificationRequest> record = new ProducerRecord<>("notification-service",
+                    SendNotificationRequest.builder()
                             .type(type)
                             .title(title)
                             .userId(userId)
