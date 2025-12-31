@@ -154,6 +154,7 @@ public class TransactionServiceImpl implements TransactionService {
         model.setDescription(transaction.getDescription());
         model.setType(transaction.getType().getTransactionType());
         model.setChannel(transaction.getChannel().getChannel());
+        model.setReceiverIBAN(transaction.getReceiverIban());
         model.setCategory(transaction.getCategory().getCategory());
         model.setStatus(transaction.getStatus().getStatus());
         model.setReceiverFirstName(transaction.getReceiverFirstName());

@@ -31,6 +31,8 @@ public class TransactionDTO {
 
     private LocalDateTime date;
 
+    private String receiverIBAN;
+
     private String receiverTCKN;
 
     private String receiverFirstName;
