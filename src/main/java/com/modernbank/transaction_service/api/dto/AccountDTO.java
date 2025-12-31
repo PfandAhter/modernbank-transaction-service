@@ -31,5 +31,7 @@ public class AccountDTO {
 
     private String lastName;
 
+    private String description;
+
     private Currency currency;
 }
