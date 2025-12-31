@@ -161,6 +161,7 @@ public class TransactionServiceConsumer {
         String message = String.format("Hesabınızdan %.2f %s tutarında para çekme işlemi gerçekleştirildi.",
                 request.getAmount(), account.getAccount().getCurrency());
         sendSafeNotification(request.getUserId(), message, "INFO", "Para Çekme İşlemi", traceId);
+        updateTransactionLimit(account.getAccount().getId(), request.getAmount(), TransactionCategory.WITHDRAWAL.toString());
 
         log.info("Withdraw completed: transactionId={}, amount={}", transaction.getId(), request.getAmount());
     }
@@ -297,6 +298,7 @@ public class TransactionServiceConsumer {
         String message = String.format("Hesabınıza %.2f %s tutarında para yatırma işlemi gerçekleştirildi.",
                 request.getAmount(), account.getAccount().getCurrency());
         sendSafeNotification(request.getUserId(), message, "INFO", "Para Yatırma İşlemi", traceId);
+        updateTransactionLimit(account.getAccount().getId(), request.getAmount(), TransactionCategory.DEPOSIT.toString());
 
         log.info("Deposit completed: transactionId={}, amount={}", transaction.getId(), request.getAmount());
     }
@@ -688,6 +690,7 @@ public class TransactionServiceConsumer {
             // TODO: SEND EMAIL
             //TODO: ACCOUNTSERVICE ACCOUNT PREVIOUS TRANSACTION IS FRAUD FLAG UPDATE TO FALSE
             updatePreviousFraudFlagSafe(sender.getAccountId(), false);
+            updateTransactionLimit(sender.getAccountId(), request.getAmount(), TransactionCategory.TRANSFER.toString());
 
             // Sender
             Transaction senderTransaction = transactionRepository.findById(request.getSenderTransactionId())
@@ -744,6 +747,14 @@ public class TransactionServiceConsumer {
             accountServiceClient.updatePreviousFraudFlag(accountId, flag);
         }catch(Exception e){
             log.warn("Failed to update previous fraud flag for accountId: {}. Error: {}", accountId, e.getMessage());
+        }
+    }
+
+    private void updateTransactionLimit(String accountId, Double amount, String category){
+        try{
+            accountServiceClient.updateLimit(accountId, amount, category);
+        }catch(Exception e){
+            log.warn("Failed to update transaction limit for accountId: {}. Error: {}", accountId, e.getMessage());
         }
     }
 

@@ -39,6 +39,7 @@ feign:
       sendChatNotification: /notification/chat/send
     account-service:
       url: ${ACCOUNT_SERVICE_URL}/api/v1/account
+      updateLimit: /limit/update
       extractFromIBAN: /get-by-iban
       extractFromId: /get-by-accountId
       getAccounts: /get
