@@ -40,7 +40,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(createErrorResponseBody(e, request, errorCodes));
     }
 
-    @ExceptionHandler({BusinessException.class, InsufficientFundsException.class})
+    @ExceptionHandler({BusinessException.class})
     public ResponseEntity<BaseResponse> handleBusinessException(BusinessException e, HttpServletRequest request) {
         logError(e, request);
         ErrorCodes errorCodes = getErrorCodeSafe(e.getMessage());

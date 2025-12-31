@@ -125,9 +125,9 @@ public class TransactionValidatorImpl implements TransactionValidator {
     }
 
     private void isAccountBlocked(String accountId) {
-        boolean isBlocked = accountServiceClient.isAccountBlocked(accountId);
+        Boolean isBlocked = accountServiceClient.isAccountBlocked(accountId);
 
-        if (isBlocked) {
+        if (isBlocked.equals(Boolean.TRUE)) {
             throw new BusinessException(DYNAMIC_ACCOUNT_BLOCKED);
         }
     }
