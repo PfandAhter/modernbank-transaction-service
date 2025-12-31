@@ -46,7 +46,7 @@ public class WithdrawFromATMServiceConsumer {
 
     private final TransactionRepository transactionRepository;
 
-    @KafkaListener(topics = "${kafka.topics.deposit-money-to-atm}", groupId = "transfer-money-to-atm-group", containerFactory = "transferMoneyToATMKafkaListenerContainerFactory")
+    @KafkaListener(topics = "deposit-money-to-atm", groupId = "transfer-money-to-atm-group", containerFactory = "transferMoneyToATMKafkaListenerContainerFactory")
     public void consumeDepositMoney(TransferMoneyATMRequest request) {
         log.info("Received deposit money to atm request: {}", request);
         GetAccountByIban senderAccountInfo = accountServiceClient.getAccountByIban(request.getSenderIban());
@@ -123,7 +123,7 @@ public class WithdrawFromATMServiceConsumer {
                     .receiverIban(request.getReceiverIban())
                     .type(TransactionType.EXPENSE)
                     .channel(TransactionChannel.ONLINE_BANKING)
-                    .category(TransactionCategory.TRANSFER_BY_ATM)
+                    .category(TransactionCategory.ATM_DEPOSIT)
                     .status(TransactionStatus.PENDING)
                     .description(request.getDescription())
                     .updatedDate(LocalDateTime.now())
@@ -158,7 +158,7 @@ public class WithdrawFromATMServiceConsumer {
         }
     }
 
-    @KafkaListener(topics = "${kafka.topics.withdraw-money-from-atm}", groupId = "withdraw-money-from-atm-group", containerFactory = "withdrawFromATMKafkaListenerContainerFactory")
+    @KafkaListener(topics = "withdraw-money-from-atm", groupId = "withdraw-money-from-atm-group", containerFactory = "withdrawFromATMKafkaListenerContainerFactory")
     public void withdrawMoneyFromATM(WithdrawFromATMRequest request) {
         try {
             List<ATMTransfer> atmTransfersOptional;

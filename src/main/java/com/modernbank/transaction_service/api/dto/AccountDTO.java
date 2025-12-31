@@ -23,6 +23,12 @@ public class AccountDTO {
 
     private String secondName;
 
+    private Double dailyTransferLimit;
+
+    private Double dailyWithdrawLimit;
+
+    private Double dailyDepositLimit;
+
     private String lastName;
 
     private Currency currency;

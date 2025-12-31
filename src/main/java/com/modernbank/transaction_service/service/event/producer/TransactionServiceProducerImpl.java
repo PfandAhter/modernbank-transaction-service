@@ -30,15 +30,15 @@ public class TransactionServiceProducerImpl implements ITransactionServiceProduc
     @Override
     public BaseResponse withdrawMoney(WithdrawAndDepositMoneyRequest request) {
         log.info("Sending withdraw money request to Kafka topic");
-        withdrawAndDepositMoneyKafkaTemplate.send("${kafka.topics.withdraw-money}", request);
-        return new BaseResponse("Withdraw money request sent successfully");
+        withdrawAndDepositMoneyKafkaTemplate.send("withdraw-money", request);
+        return new BaseResponse("Para çekme talebi başarıyla gönderildi");
     }
 
     @Override
     public BaseResponse depositMoney(WithdrawAndDepositMoneyRequest request) {
         log.info("Sending deposit money request to Kafka topic");
-        withdrawAndDepositMoneyKafkaTemplate.send("${kafka.topics.deposit-money}", request);
-        return new BaseResponse("Deposit money request sent successfully");
+        withdrawAndDepositMoneyKafkaTemplate.send("deposit-money", request);
+        return new BaseResponse("Para yatırma talebi başarıyla gönderildi");
     }
 
     @Override
