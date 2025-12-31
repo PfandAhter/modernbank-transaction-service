@@ -73,7 +73,7 @@ public class TransactionServiceProducerImpl implements ITransactionServiceProduc
                             receiver.getFirstName(), receiver.getLastName()));
         }
 
-        if(request.getDescription().isEmpty()){
+        if(request.getDescription() == null || request.getDescription().isEmpty()){
             request.setDescription("Sistem tarafından otomatik oluşturuldu.");
         }
 
