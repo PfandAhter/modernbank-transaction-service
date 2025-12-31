@@ -85,9 +85,11 @@ public class TransactionValidatorImpl implements TransactionValidator {
     }
 
     private void validateDepositDailyLimit(WithdrawAndDepositMoneyRequest request) {
+        log.info("Validating deposit daily limit for request: {}", request);
         GetAccountByIdResponse account = getAccountByIdOrThrow(request.getAccountId());
         double last24HourDepositSum = transactionRepository.
                 sumDepositsLast24Hours(request.getAccountId(), LocalDateTime.now());
+        log.info("Last 24 hour deposit sum: {}", last24HourDepositSum);
 
         if (last24HourDepositSum + request.getAmount() > account.getAccount().getDailyDepositLimit()) {
             throw new BusinessException(DYNAMIC_DAILY_DEPOSIT_LIMIT_EXCEEDED,
@@ -95,6 +97,7 @@ public class TransactionValidatorImpl implements TransactionValidator {
                     account.getAccount().getDailyDepositLimit() - last24HourDepositSum
             );
         }
+        log.info("Deposit daily limit validated successfully");
     }
 
     private void validateWithdrawDailyLimit(WithdrawAndDepositMoneyRequest request, GetAccountByIdResponse account) {
@@ -138,7 +141,7 @@ public class TransactionValidatorImpl implements TransactionValidator {
         log.info("Checking if account is blocked: {}", accountId);
         Boolean isBlocked = accountServiceClient.isAccountBlocked(accountId);
 
-        log.info("@@@@@@@@@@@@@@@@@@@@@ Account is blocked: {}", isBlocked); //TODO: Test Log
+        log.info("Account is blocked: {}", isBlocked); //TODO: Test Log
         if (isBlocked.equals(Boolean.TRUE)) {
             throw new BusinessException(DYNAMIC_ACCOUNT_BLOCKED);
         }
@@ -175,12 +178,14 @@ public class TransactionValidatorImpl implements TransactionValidator {
     }
 
     private GetAccountByIdResponse getAccountByIdOrThrow(String id) {
+        log.info("Getting account by id: {}", id);
         GetAccountByIdResponse accountResponse = accountServiceClient.getAccountById(id);
 
         if (accountResponse == null || accountResponse.getAccount() == null) {
             throw new BusinessException(DYNAMIC_ACCOUNT_NOT_FOUND, id);
         }
 
+        log.info("@@@@@@@@@@@@@@@@@@@@@ Account found: {}", accountResponse.getAccount().getId());
         return accountResponse;
     }
 }
