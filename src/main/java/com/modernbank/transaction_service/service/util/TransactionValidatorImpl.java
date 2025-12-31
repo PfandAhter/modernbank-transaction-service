@@ -10,6 +10,7 @@ import com.modernbank.transaction_service.exception.BusinessException;
 import com.modernbank.transaction_service.exception.InsufficientFundsException;
 import com.modernbank.transaction_service.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ import static com.modernbank.transaction_service.constant.ErrorCodeConstants.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TransactionValidatorImpl implements TransactionValidator {
 
     private final AccountServiceClient accountServiceClient;
@@ -26,30 +28,37 @@ public class TransactionValidatorImpl implements TransactionValidator {
 
     @Override
     public void validateTransferMoney(TransferMoneyRequest request) {
+        log.info("Validating transfer money request: {}", request);
         GetAccountByIban fromAccount = getAccountByIBANOrThrow(request.getFromIBAN());
         validateSufficientFunds(fromAccount, request.getAmount());
         validateUserOwnership(request.getUserId(), fromAccount, request.getFromIBAN());
         isSenderIBANBlacklisted(request.getFromIBAN());
         isReceiverIBANBlacklisted(request.getToIBAN());
         validateIBANsAreDifferent(request.getFromIBAN(), request.getToIBAN());
+        log.info("Transfer money request validated successfully");
     }
 
     @Override
     public void validateDepositMoneyDailyLimit(WithdrawAndDepositMoneyRequest request) {
+        log.info("Validating deposit money daily limit for request: {}", request);
         isAccountBlocked(request.getAccountId());
         validateDepositDailyLimit(request);
+        log.info("Deposit money daily limit validated successfully");
     }
 
     @Override
     public void validateWithdrawMoneyDailyLimit(WithdrawAndDepositMoneyRequest request) {
+        log.info("Validating withdraw money daily limit for request: {}", request);
         isAccountBlocked(request.getAccountId());
         GetAccountByIdResponse account = getAccountByIdOrThrow(request.getAccountId());
         validateSufficientFunds(account, request.getAmount());
         validateWithdrawDailyLimit(request, account);
+        log.info("Withdraw money daily limit validated successfully");
     }
 
     @Override
     public void validateDepositMoneyATMLimit(TransferMoneyATMRequest request){
+        log.info("Validating deposit money ATM limit for request: {}", request);
         GetAccountByIban senderAccount = getAccountByIBANOrThrow(request.getSenderIban());
         isAccountBlocked(senderAccount.getAccountId());
         validateSufficientFunds(senderAccount, request.getAmount());
@@ -63,6 +72,7 @@ public class TransactionValidatorImpl implements TransactionValidator {
                     senderAccount.getDailyDepositLimit() - depositATMDailySum
             );
         }
+        log.info("Deposit money ATM limit validated successfully");
     }
 
     private void validateIBANsAreDifferent(String fromIBAN, String toIBAN) {
@@ -125,8 +135,10 @@ public class TransactionValidatorImpl implements TransactionValidator {
     }
 
     private void isAccountBlocked(String accountId) {
+        log.info("Checking if account is blocked: {}", accountId);
         Boolean isBlocked = accountServiceClient.isAccountBlocked(accountId);
 
+        log.info("@@@@@@@@@@@@@@@@@@@@@ Account is blocked: {}", isBlocked); //TODO: Test Log
         if (isBlocked.equals(Boolean.TRUE)) {
             throw new BusinessException(DYNAMIC_ACCOUNT_BLOCKED);
         }
