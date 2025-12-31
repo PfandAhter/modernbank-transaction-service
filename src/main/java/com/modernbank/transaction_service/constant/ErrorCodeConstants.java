@@ -78,6 +78,14 @@ public class ErrorCodeConstants {
 
     public static final String DYNAMIC_SAME_IBAN_TRANSFER = "DTSE-0008";
 
+    public static final String DYNAMIC_DAILY_DEPOSIT_LIMIT_EXCEEDED = "DTSE-0009";
+
+    public static final String DYNAMIC_SENDER_IBAN_BLACKLISTED = "DTSE-0010";
+
+    public static final String DYNAMIC_DAILY_WITHDRAW_LIMIT_EXCEEDED = "DTSE-0011";
+
+    public static final String DYNAMIC_ATM_DEPOSIT_LIMIT_EXCEEDED = "DTSE-0012";
+
 
     public static final String TECH_TRANSFER_ERROR = "TECH_ERR_TRANSFER_FLOW";
 

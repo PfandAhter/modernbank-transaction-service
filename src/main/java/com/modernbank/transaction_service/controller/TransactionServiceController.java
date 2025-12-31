@@ -37,12 +37,14 @@ public class TransactionServiceController implements TransactionServiceApi {
 
     @Override
     public ResponseEntity<BaseResponse> withdrawMoney(WithdrawAndDepositMoneyRequest request) {
-        return null;
+        transactionValidator.validateWithdrawMoneyDailyLimit(request);
+        return ResponseEntity.ok(transactionServiceProducer.withdrawMoney(request));
     }
 
     @Override
     public ResponseEntity<BaseResponse> depositMoney(WithdrawAndDepositMoneyRequest request) {
-        return null;
+        transactionValidator.validateDepositMoneyDailyLimit(request);
+        return ResponseEntity.ok(transactionServiceProducer.depositMoney(request));
     }
 
     @Override
@@ -56,12 +58,13 @@ public class TransactionServiceController implements TransactionServiceApi {
     }
 
     @Override
-    public ResponseEntity<BaseResponse> withdrawMoneyFromATM(TransferMoneyATMRequest request) {
+    public ResponseEntity<BaseResponse> depositMoneyToATM(TransferMoneyATMRequest request) {
+        transactionValidator.validateDepositMoneyATMLimit(request);
         return ResponseEntity.ok(withdrawFromATMServiceProducer.transferMoneyATM(request));
     }
 
     @Override
-    public ResponseEntity<BaseResponse> withdrawMoneyFromATM(WithdrawFromATMRequest request) {
+    public ResponseEntity<BaseResponse> depositMoneyToATM(WithdrawFromATMRequest request) {
         return ResponseEntity.ok(withdrawFromATMServiceProducer.withdrawMoneyFromATM(request));
     }
 

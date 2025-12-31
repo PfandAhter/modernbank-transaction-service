@@ -19,6 +19,10 @@ public class GetAccountByIban {
     private String tckn;
     private String email;
 
+    private Double dailyTransferLimit;
+    private Double dailyWithdrawLimit;
+    private Double dailyDepositLimit;
+
     private double balance;
     private Currency currency;
     private AccountStatus status;

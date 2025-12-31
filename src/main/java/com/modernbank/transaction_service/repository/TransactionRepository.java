@@ -82,6 +82,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
             @Param("end") LocalDateTime end
     );
 
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.accountId = :accountId AND t.category = 'DEPOSIT' AND t.date >= :since")
+    Double sumDepositsLast24Hours(@Param("accountId") String accountId, @Param("since") LocalDateTime since);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.accountId = :accountId AND t.category = 'ATM_DEPOSIT' AND t.date >= :since")
+    Double sumDepositsToATMLast24Hours(@Param("accountId") String accountId, @Param("since") LocalDateTime since);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.accountId = :accountId AND t.category = 'WITHDRAW' AND t.date >= :fromTime")
+    Double sumWithdrawalsLast24Hours(@Param("accountId") String accountId, @Param("fromTime") LocalDateTime fromTime);
 
     @Query("SELECT COALESCE(AVG(t.amount), 0) FROM Transaction t WHERE t.accountId = :senderAccountId AND t.date >= :since")
     Double findAvgAmountSinceBySender(@Param("senderAccountId") String senderAccountId, @Param("since") LocalDateTime since);

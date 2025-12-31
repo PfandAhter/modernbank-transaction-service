@@ -52,7 +52,7 @@ public class TransactionServiceConsumer {
     private boolean fraudDetectionEnabled;
 
     @Transactional
-    @KafkaListener(topics = "${kafka.topics.withdraw-money}", groupId = "${spring.application.name}")
+    @KafkaListener(topics = "withdraw-money", groupId = "withdraw-and-deposit", containerFactory = "moneyWithdrawAndDepositKafkaListenerContainerFactory")
     public void consumeWithdrawMoney(WithdrawAndDepositMoneyRequest request) {
         log.info("Received withdraw money request: {}", request);
 
@@ -190,7 +190,7 @@ public class TransactionServiceConsumer {
         transaction.setStatus(TransactionStatus.BLOCKED);
         transactionRepository.save(transaction);
 
-        fraudEvaluationService.incrementFraudCounter(account.getAccount().getUserId(), "HIGH risk withdraw rejected");//TODO: Update here. I was here....
+        fraudEvaluationService.incrementFraudCounter(account.getAccount().getUserId(), "HIGH risk withdraw rejected");
 
         String traceId = MDC.get("traceId");
         sendSafeNotification(account.getAccount().getUserId(), "Güvenlik nedeniyle para çekme işleminiz reddedildi.", "CRITICAL", "İşlem Reddedildi", traceId);
@@ -200,7 +200,7 @@ public class TransactionServiceConsumer {
 
 
     @Transactional
-    @KafkaListener(topics = "${kafka.topics.deposit-money}", groupId = "${spring.application.name}")
+    @KafkaListener(topics = "deposit-money", groupId = "withdraw-and-deposit", containerFactory = "moneyWithdrawAndDepositKafkaListenerContainerFactory")
     public void consumeDepositMoney(WithdrawAndDepositMoneyRequest request) {
         log.info("Received deposit money request: {}", request);
 

@@ -21,10 +21,10 @@ public interface TransactionServiceApi {
     ResponseEntity<BaseResponse> transferMoney(@RequestBody TransferMoneyRequest request);
 
     @PostMapping(path = "/transfer/atm", produces = "application/json", consumes = "application/json")
-    ResponseEntity<BaseResponse> withdrawMoneyFromATM(@RequestBody TransferMoneyATMRequest request);
+    ResponseEntity<BaseResponse> depositMoneyToATM(@RequestBody TransferMoneyATMRequest request);
 
     @PostMapping(path = "/withdraw/atm", produces = "application/json", consumes = "application/json")
-    ResponseEntity<BaseResponse> withdrawMoneyFromATM(@RequestBody WithdrawFromATMRequest request);
+    ResponseEntity<BaseResponse> depositMoneyToATM(@RequestBody WithdrawFromATMRequest request);
 
     @GetMapping(path = "/transactions")
     GetTransactionsResponse getAllTransactions(@RequestParam("accountId") String accountId, @RequestParam("page") int page, @RequestParam("size") int size);
