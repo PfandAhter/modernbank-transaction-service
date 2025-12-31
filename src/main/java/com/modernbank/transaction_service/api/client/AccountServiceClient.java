@@ -29,6 +29,13 @@ public interface AccountServiceClient {
         @PostMapping(path = "${feign.client.account-service.holdAccount}")
         BaseResponse holdAccount(@RequestParam(value = "accountId") String accountId);
 
+        @PostMapping(path = "${feign.client.account-service.updateLimit}")
+        BaseResponse updateLimit(
+                @RequestParam(value = "accountId") String accountId,
+                @RequestParam(value = "amount") Double amount,
+                @RequestParam(value = "category") String category
+        );
+
         @GetMapping(path = "${feign.client.account-service.isBlacklisted}")
         Boolean isReceiverBlacklisted(@RequestParam(value = "iban") String iban);
 
