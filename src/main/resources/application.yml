@@ -57,7 +57,7 @@ feign:
 
 # Fraud Detection Configuration
 fraud:
-  enabled: ${FRAUD_ENABLED }  # Set to false to disable fraud detection
+  enabled: ${FRAUD_ENABLED}  # Set to false to disable fraud detection
   decision:
     hold-timeout-minutes: 15
     strong-auth-timeout-minutes: 5

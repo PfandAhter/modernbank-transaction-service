@@ -64,8 +64,7 @@ public class TransactionServiceConsumer {
                     request.getAmount(),
                     TransactionType.EXPENSE,
                     LocalDateTime.now().minusMinutes(1),
-                    LocalDateTime.now()
-            );
+                    LocalDateTime.now());
 
             if (isDuplicate) {
                 log.warn("Duplicate withdraw message detected! Skipping. AccountId: {}", account.getAccount().getId());
@@ -78,8 +77,7 @@ public class TransactionServiceConsumer {
                         request.getUserId(),
                         DYNAMIC_INSUFFICIENT_FUNDS,
                         account.getAccount().getBalance(),
-                        request.getAmount()
-                );
+                        request.getAmount());
                 return;
             }
 
@@ -87,8 +85,7 @@ public class TransactionServiceConsumer {
                 technicalErrorService.handleBusinessError(
                         null,
                         request.getUserId(),
-                        DYNAMIC_ACCOUNT_BLOCKED
-                );
+                        DYNAMIC_ACCOUNT_BLOCKED);
                 return;
             }
 
@@ -112,7 +109,8 @@ public class TransactionServiceConsumer {
             transaction = transactionRepository.save(transaction);
 
             if (fraudDetectionEnabled) {
-                FraudDecision decision = fraudEvaluationService.evaluateAndDecide(transaction, account.getAccount().getId());
+                FraudDecision decision = fraudEvaluationService.evaluateAndDecide(transaction,
+                        account.getAccount().getId());
                 handleWithdrawFraudDecision(decision, transaction, request, account);
             } else {
                 processApprovedWithdraw(transaction, request, account);
@@ -121,10 +119,9 @@ public class TransactionServiceConsumer {
         } catch (Exception exception) {
             log.error("Error processing withdraw request: {}", exception.getMessage());
             technicalErrorService.handleTechnicalError(
-                    //request,
+                    // request,
                     TECH_WITHDRAW_MONEY_ERROR,
-                    exception
-            );
+                    exception);
         }
     }
 
@@ -150,7 +147,8 @@ public class TransactionServiceConsumer {
         }
     }
 
-    private void processApprovedWithdraw(Transaction transaction, WithdrawAndDepositMoneyRequest request, GetAccountByIdResponse account) {
+    private void processApprovedWithdraw(Transaction transaction, WithdrawAndDepositMoneyRequest request,
+            GetAccountByIdResponse account) {
         accountServiceClient.updateBalance(account.getAccount().getIban(), -request.getAmount());
 
         transaction.setStatus(TransactionStatus.COMPLETED);
@@ -161,7 +159,8 @@ public class TransactionServiceConsumer {
         String message = String.format("Hesabınızdan %.2f %s tutarında para çekme işlemi gerçekleştirildi.",
                 request.getAmount(), account.getAccount().getCurrency());
         sendSafeNotification(request.getUserId(), message, "INFO", "Para Çekme İşlemi", traceId);
-        updateTransactionLimit(account.getAccount().getId(), request.getAmount(), TransactionCategory.WITHDRAWAL.toString());
+        updateTransactionLimit(account.getAccount().getId(), request.getAmount(),
+                TransactionCategory.WITHDRAWAL.toString());
 
         log.info("Withdraw completed: transactionId={}, amount={}", transaction.getId(), request.getAmount());
     }
@@ -194,11 +193,12 @@ public class TransactionServiceConsumer {
         fraudEvaluationService.incrementFraudCounter(account.getAccount().getUserId(), "HIGH risk withdraw rejected");
 
         String traceId = MDC.get("traceId");
-        sendSafeNotification(account.getAccount().getUserId(), "Güvenlik nedeniyle para çekme işleminiz reddedildi.", "CRITICAL", "İşlem Reddedildi", traceId);
+        sendSafeNotification(account.getAccount().getUserId(), "Güvenlik nedeniyle para çekme işleminiz reddedildi.",
+                "CRITICAL", "İşlem Reddedildi", traceId);
 
-        log.warn("Withdraw blocked: transactionId={}, userId={}", transaction.getId(), account.getAccount().getUserId());
+        log.warn("Withdraw blocked: transactionId={}, userId={}", transaction.getId(),
+                account.getAccount().getUserId());
     }
-
 
     @Transactional
     @KafkaListener(topics = "deposit-money", groupId = "withdraw-and-deposit", containerFactory = "moneyWithdrawAndDepositKafkaListenerContainerFactory")
@@ -213,8 +213,7 @@ public class TransactionServiceConsumer {
                     request.getAmount(),
                     TransactionType.INCOME,
                     LocalDateTime.now().minusMinutes(1),
-                    LocalDateTime.now()
-            );
+                    LocalDateTime.now());
 
             if (isDuplicate) {
                 log.warn("Duplicate deposit message detected! Skipping. AccountId: {}", account.getAccount().getId());
@@ -225,8 +224,7 @@ public class TransactionServiceConsumer {
                 technicalErrorService.handleBusinessError(
                         null,
                         request.getUserId(),
-                        DYNAMIC_ACCOUNT_BLOCKED
-                );
+                        DYNAMIC_ACCOUNT_BLOCKED);
                 return;
             }
 
@@ -250,7 +248,8 @@ public class TransactionServiceConsumer {
             transaction = transactionRepository.save(transaction);
 
             if (fraudDetectionEnabled) {
-                FraudDecision decision = fraudEvaluationService.evaluateAndDecide(transaction, account.getAccount().getId());
+                FraudDecision decision = fraudEvaluationService.evaluateAndDecide(transaction,
+                        account.getAccount().getId());
                 handleDepositFraudDecision(decision, transaction, request, account);
             } else {
                 processApprovedDeposit(transaction, request, account);
@@ -260,8 +259,7 @@ public class TransactionServiceConsumer {
             log.error("Error processing deposit request: {}", exception.getMessage());
             technicalErrorService.handleTechnicalError(
                     TECH_DEPOSIT_MONEY_ERROR,
-                    exception
-            );
+                    exception);
         }
     }
 
@@ -287,7 +285,8 @@ public class TransactionServiceConsumer {
         }
     }
 
-    private void processApprovedDeposit(Transaction transaction, WithdrawAndDepositMoneyRequest request, GetAccountByIdResponse account) {
+    private void processApprovedDeposit(Transaction transaction, WithdrawAndDepositMoneyRequest request,
+            GetAccountByIdResponse account) {
         accountServiceClient.updateBalance(account.getAccount().getIban(), request.getAmount());
 
         transaction.setStatus(TransactionStatus.COMPLETED);
@@ -298,7 +297,8 @@ public class TransactionServiceConsumer {
         String message = String.format("Hesabınıza %.2f %s tutarında para yatırma işlemi gerçekleştirildi.",
                 request.getAmount(), account.getAccount().getCurrency());
         sendSafeNotification(request.getUserId(), message, "INFO", "Para Yatırma İşlemi", traceId);
-        updateTransactionLimit(account.getAccount().getId(), request.getAmount(), TransactionCategory.DEPOSIT.toString());
+        updateTransactionLimit(account.getAccount().getId(), request.getAmount(),
+                TransactionCategory.DEPOSIT.toString());
 
         log.info("Deposit completed: transactionId={}, amount={}", transaction.getId(), request.getAmount());
     }
@@ -331,7 +331,8 @@ public class TransactionServiceConsumer {
         fraudEvaluationService.incrementFraudCounter(account.getAccount().getUserId(), "HIGH risk deposit rejected");
 
         String traceId = MDC.get("traceId");
-        sendSafeNotification(account.getAccount().getUserId(), "Güvenlik nedeniyle para yatırma işleminiz reddedildi.", "CRITICAL", "İşlem Reddedildi", traceId);
+        sendSafeNotification(account.getAccount().getUserId(), "Güvenlik nedeniyle para yatırma işleminiz reddedildi.",
+                "CRITICAL", "İşlem Reddedildi", traceId);
 
         log.warn("Deposit blocked: transactionId={}, userId={}", transaction.getId(), account.getAccount().getUserId());
     }
@@ -352,11 +353,14 @@ public class TransactionServiceConsumer {
                     request.getAmount(),
                     request.getDescription(),
                     LocalDateTime.now().minusMinutes(1),
-                    LocalDateTime.now()
-            );
+                    LocalDateTime.now());
 
             if (isDuplicate) {
-                log.warn("Duplicate message detected! Skipping execution. User: {}", request.getUserId()); //TODO: Should we notify user about duplicate?
+                log.warn("Duplicate message detected! Skipping execution. User: {}", request.getUserId()); // TODO:
+                                                                                                           // Should we
+                                                                                                           // notify
+                                                                                                           // user about
+                                                                                                           // duplicate?
                 return;
             }
 
@@ -366,7 +370,7 @@ public class TransactionServiceConsumer {
                         request.getUserId(),
                         DYNAMIC_INSUFFICIENT_FUNDS,
                         senderAccountByIban.getBalance(), // Argüman {0}
-                        request.getAmount()               // Argüman {1}
+                        request.getAmount() // Argüman {1}
                 );
                 return;
             }
@@ -375,8 +379,7 @@ public class TransactionServiceConsumer {
                 technicalErrorService.handleBusinessError(
                         null,
                         request.getUserId(),
-                        DYNAMIC_ACCOUNT_BLOCKED
-                );
+                        DYNAMIC_ACCOUNT_BLOCKED);
                 return;
             }
 
@@ -385,8 +388,8 @@ public class TransactionServiceConsumer {
                         null,
                         request.getUserId(),
                         DYNAMIC_CURRENCY_MISMATCH,
-                        senderAccountByIban.getCurrency(),   // {0}
-                        receiverAccountByIban.getCurrency()  // {1}
+                        senderAccountByIban.getCurrency(), // {0}
+                        receiverAccountByIban.getCurrency() // {1}
                 );
                 return;
             }
@@ -397,15 +400,15 @@ public class TransactionServiceConsumer {
                             null,
                             request.getUserId(),
                             DYNAMIC_RECEIVER_MIS_MATCH
-//                            request.getToFirstName()           // {0} Girilen
-//                            receiverAccountByIban.getFirstName() // {1} Gerçek
+                    // request.getToFirstName() // {0} Girilen
+                    // receiverAccountByIban.getFirstName() // {1} Gerçek
                     );
                     return;
                 }
             }
 
-            Transaction transactionRecordForSender = createTransactionRecordForSender(request, senderAccountByIban, receiverAccountByIban);
-
+            Transaction transactionRecordForSender = createTransactionRecordForSender(request, senderAccountByIban,
+                    receiverAccountByIban);
 
             request.setSenderTransactionId(transactionRecordForSender.getId());
 
@@ -413,12 +416,17 @@ public class TransactionServiceConsumer {
                 FraudDecision decision = fraudEvaluationService.evaluateAndDecide(
                         transactionRecordForSender, senderAccountByIban.getAccountId());
                 if (decision.equals(FraudDecision.APPROVE)) {
-                    Transaction transactionRecordForReceiver = createTransactionRecordForReceiver(request, senderAccountByIban, receiverAccountByIban);
+                    Transaction transactionRecordForReceiver = createTransactionRecordForReceiver(request,
+                            senderAccountByIban, receiverAccountByIban);
                     request.setReceiverTransactionId(transactionRecordForReceiver.getId());
                 }
 
                 handleFraudDecision(decision, transactionRecordForSender, request, senderAccountByIban);
             } else {
+                // Fraud detection disabled - still need to create receiver transaction record
+                Transaction transactionRecordForReceiver = createTransactionRecordForReceiver(request,
+                        senderAccountByIban, receiverAccountByIban);
+                request.setReceiverTransactionId(transactionRecordForReceiver.getId());
                 processApprovedTransfer(transactionRecordForSender, request);
             }
 
@@ -426,10 +434,9 @@ public class TransactionServiceConsumer {
             log.warn("Error at transfer start: {}", exception.getMessage());
 
             technicalErrorService.handleTechnicalError(
-                    //request,
+                    // request,
                     TECH_START_TRANSFER_MONEY_ERROR,
-                    exception
-            );
+                    exception);
         }
     }
 
@@ -468,7 +475,8 @@ public class TransactionServiceConsumer {
         transaction.setStatus(TransactionStatus.HOLD);
         transactionRepository.save(transaction);
 
-        String message = transaction.getReceiverIban() + " nolu IBAN'a "+ transaction.getAmount() +" miktarindaki transfer işleminiz güvenlik nedeniyle beklemeye alındı. Lütfen işlemi onaylayınız.";
+        String message = transaction.getReceiverIban() + " nolu IBAN'a " + transaction.getAmount()
+                + " miktarindaki transfer işleminiz güvenlik nedeniyle beklemeye alındı. Lütfen işlemi onaylayınız.";
 
         HashMap<String, Object> args = new HashMap<>();
         args.put("transactionId", transaction.getId());
@@ -497,13 +505,12 @@ public class TransactionServiceConsumer {
                 "Güvenlik nedeniyle transfer işleminiz reddedildi. Lütfen destek ekibimizle iletişime geçiniz.",
                 "CRITICAL",
                 "İşlem Reddedildi",
-                traceId
-        );
+                traceId);
         updatePreviousFraudFlagSafe(senderAccount.getAccountId(), true);
 
         log.warn("Transfer blocked: transactionId={}, userId={}",
                 transaction.getId(), senderAccount.getUserId());
-        //throw new NotFoundException("Transaction rejected due to security reasons");
+        // throw new NotFoundException("Transaction rejected due to security reasons");
     }
 
     private Transaction createTransactionRecordForSender(
@@ -614,17 +621,17 @@ public class TransactionServiceConsumer {
                     });
 
             technicalErrorService.handleTechnicalError(
-                    //request,
+                    // request,
                     TECH_UPDATE_TRANSFER_MONEY_ERROR,
-                    exception
-            );
+                    exception);
         }
     }
 
     @KafkaListener(topics = "finalize-transfer-money", groupId = "transfer-group", containerFactory = "moneyTransferKafkaListenerContainerFactory")
     public void processFinalizeTransferMoney(TransferMoneyRequest request) {
         if (request == null || request.getSenderTransactionId() == null || request.getReceiverTransactionId() == null) {
-            log.error("CRITICAL: Received malformed request or missing TransactionID! Dropping message. Request: {}", request);
+            log.error("CRITICAL: Received malformed request or missing TransactionID! Dropping message. Request: {}",
+                    request);
             return;
         }
 
@@ -682,19 +689,23 @@ public class TransactionServiceConsumer {
                     receiverFullName,
                     request.getAmount());
 
-            sendSafeNotification(receiver.getUserId(), receiverNotificationMessage,"INFO", "Para Transferi Geldi",traceId);
-            sendSafeNotification(sender.getUserId(), senderNotificationMessage, "INFO", "Para Transferi Gönderildi",traceId);
+            sendSafeNotification(receiver.getUserId(), receiverNotificationMessage, "INFO", "Para Transferi Geldi",
+                    traceId);
+            sendSafeNotification(sender.getUserId(), senderNotificationMessage, "INFO", "Para Transferi Gönderildi",
+                    traceId);
 
             sendSafeChatNotification(request, sender, receiver, receiverFullName);
 
             // TODO: SEND EMAIL
-            //TODO: ACCOUNTSERVICE ACCOUNT PREVIOUS TRANSACTION IS FRAUD FLAG UPDATE TO FALSE
+            // TODO: ACCOUNTSERVICE ACCOUNT PREVIOUS TRANSACTION IS FRAUD FLAG UPDATE TO
+            // FALSE
             updatePreviousFraudFlagSafe(sender.getAccountId(), false);
             updateTransactionLimit(sender.getAccountId(), request.getAmount(), TransactionCategory.TRANSFER.toString());
 
             // Sender
             Transaction senderTransaction = transactionRepository.findById(request.getSenderTransactionId())
-                    .orElseThrow(() -> new NotFoundException("Transaction not found id: " + request.getSenderTransactionId()));
+                    .orElseThrow(() -> new NotFoundException(
+                            "Transaction not found id: " + request.getSenderTransactionId()));
 
             senderTransaction.setStatus(TransactionStatus.COMPLETED);
             senderTransaction.setTitle("Para Transferi Gönderme");
@@ -704,7 +715,8 @@ public class TransactionServiceConsumer {
             sendSafeCreateInvoice(sender, request, senderFullName, receiverFullName);
 
             Transaction receiverTransaction = transactionRepository.findById(request.getReceiverTransactionId())
-                    .orElseThrow(() -> new NotFoundException("Transaction not found id: " + request.getReceiverTransactionId()));
+                    .orElseThrow(() -> new NotFoundException(
+                            "Transaction not found id: " + request.getReceiverTransactionId()));
 
             receiverTransaction.setStatus(TransactionStatus.COMPLETED);
             receiverTransaction.setTitle("Para Transferi Geldi");
@@ -715,15 +727,14 @@ public class TransactionServiceConsumer {
             log.error("Error at transfer finalize :  ", exception.getMessage());
 
             technicalErrorService.handleTechnicalError(
-                    //request,
+                    // request,
                     TECH_FINALIZE_TRANSFER_MONEY_ERROR,
-                    exception
-            );
+                    exception);
         }
     }
 
-
-    private void sendSafeChatNotification(TransferMoneyRequest request, GetAccountByIban sender, GetAccountByIban receiver, String receiverFullName) {
+    private void sendSafeChatNotification(TransferMoneyRequest request, GetAccountByIban sender,
+            GetAccountByIban receiver, String receiverFullName) {
         try {
             if (request.getByAi().equals("TRUE")) {
                 chatNotificationKafkaTemplate.send("chat-notification-service", ChatNotificationRequest.builder()
@@ -738,30 +749,31 @@ public class TransactionServiceConsumer {
                         .build());
             }
         } catch (Exception e) {
-            log.warn("Failed to send chat notification for transaction: {}. Error: {}", request.getSenderTransactionId(), e.getMessage());
+            log.warn("Failed to send chat notification for transaction: {}. Error: {}",
+                    request.getSenderTransactionId(), e.getMessage());
         }
     }
 
-    private void updatePreviousFraudFlagSafe(String accountId, Boolean flag){
-        try{
+    private void updatePreviousFraudFlagSafe(String accountId, Boolean flag) {
+        try {
             accountServiceClient.updatePreviousFraudFlag(accountId, flag);
-        }catch(Exception e){
+        } catch (Exception e) {
             log.warn("Failed to update previous fraud flag for accountId: {}. Error: {}", accountId, e.getMessage());
         }
     }
 
-    private void updateTransactionLimit(String accountId, Double amount, String category){
-        try{
+    private void updateTransactionLimit(String accountId, Double amount, String category) {
+        try {
             accountServiceClient.updateLimit(accountId, amount, category);
-        }catch(Exception e){
+        } catch (Exception e) {
             log.warn("Failed to update transaction limit for accountId: {}. Error: {}", accountId, e.getMessage());
         }
     }
 
-    private void sendSafeNotification(String userId, String message,String type, String title,String traceId) {
+    private void sendSafeNotification(String userId, String message, String type, String title, String traceId) {
         try {
-            ProducerRecord<String, SendNotificationRequest> record =
-                    new ProducerRecord<>("notification-service", SendNotificationRequest.builder()
+            ProducerRecord<String, SendNotificationRequest> record = new ProducerRecord<>("notification-service",
+                    SendNotificationRequest.builder()
                             .type(type)
                             .title(title)
                             .userId(userId)
@@ -771,18 +783,22 @@ public class TransactionServiceConsumer {
 
             notificationKafkaTemplate.send(record);
 
-            /*notificationKafkaTemplate.send("notification-service", SendNotificationRequest.builder()
-                    .type(type)
-                    .title(title)
-                    .userId(notificationSentTo.getUserId())
-                    .message(message)
-                    .build());*/
+            /*
+             * notificationKafkaTemplate.send("notification-service",
+             * SendNotificationRequest.builder()
+             * .type(type)
+             * .title(title)
+             * .userId(notificationSentTo.getUserId())
+             * .message(message)
+             * .build());
+             */
         } catch (Exception e) {
             log.warn("Failed to send notification for userId: {}. Error: {}", userId, e.getMessage());
         }
     }
 
-    private void sendSafeCreateInvoice(GetAccountByIban account, TransferMoneyRequest request, String senderFullName, String receiverFullName) {
+    private void sendSafeCreateInvoice(GetAccountByIban account, TransferMoneyRequest request, String senderFullName,
+            String receiverFullName) {
         try {
             Map<String, Object> invoiceDataForSender = new HashMap<>();
             invoiceDataForSender.put("senderTCKNHashed", account.getTckn());
@@ -805,7 +821,8 @@ public class TransactionServiceConsumer {
                     .data(invoiceDataForSender)
                     .build());
         } catch (Exception e) {
-            log.warn("Failed to create invoice for transaction: {}. Error: {}", request.getSenderTransactionId(), e.getMessage());
+            log.warn("Failed to create invoice for transaction: {}. Error: {}", request.getSenderTransactionId(),
+                    e.getMessage());
         }
     }
 }
