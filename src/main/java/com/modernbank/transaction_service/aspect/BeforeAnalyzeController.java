@@ -18,7 +18,7 @@ public class BeforeAnalyzeController {
 
     private final HeaderService headerService;
 
-    @Before(value = "execution(* com.modernbank.transaction_service.controller.TransactionServiceController.*(..))")
+    @Before(value = "execution(* com.modernbank.transaction_service.controller.TransactionAnalyzeController.*(..))")
     public void setTokenBeforeController(JoinPoint joinPoint){
         Object[] parameters = joinPoint.getArgs();
         for(Object param : parameters){
