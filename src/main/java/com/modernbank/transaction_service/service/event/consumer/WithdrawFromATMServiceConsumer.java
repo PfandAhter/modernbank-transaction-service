@@ -28,6 +28,7 @@ import static com.modernbank.transaction_service.constant.ErrorCodeConstants.ATM
 import static com.modernbank.transaction_service.constant.ErrorCodeConstants.ATM_TRANSFER_NOT_FOUND_BY_TCKN_OR_ATMID;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -129,11 +130,10 @@ public class WithdrawFromATMServiceConsumer {
                     .updatedDate(LocalDateTime.now())
                     .date(LocalDateTime.now())
                     .build();
+            transactionRepository.save(transaction);
 
             atmTransfer.setTransactionId(transaction.getId());
-
             atmTransferRepository.save(atmTransfer);
-            transactionRepository.save(transaction);
 
             GetATMNameAndIDResponse atmInfo = atmReportingServiceClient.getATMById(request.getAtmId());
 
@@ -256,6 +256,7 @@ public class WithdrawFromATMServiceConsumer {
                                 .title("Withdraw Money From ATM")
                                 .type(TransactionType.EXPENSE.getTransactionType())
                                 .message(String.format("Sender IBAN %s made %d transactions totaling %.2f TL withdrawn from %s ATM.", senderIban, transactionCount, totalAmount, atmInfo.getName()))
+                                .arguments(new HashMap<>())
                                 .build());
                     });
 

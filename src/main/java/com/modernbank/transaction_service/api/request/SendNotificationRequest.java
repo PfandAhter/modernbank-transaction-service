@@ -19,5 +19,5 @@ public class SendNotificationRequest{
 
     private String title;
 
-    Map<String,Object> arguments;
+    private Map<String,Object> arguments;
 }
